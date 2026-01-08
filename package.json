@@ -1,0 +1,40 @@
+{
+  "name": "@git-stunts/trailer-codec",
+  "version": "2.0.0",
+  "description": "Robust encoder/decoder for structured metadata in Git commit messages",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./service": "./src/domain/services/TrailerCodecService.js",
+    "./message": "./src/domain/entities/GitCommitMessage.js",
+    "./trailer": "./src/domain/value-objects/GitTrailer.js",
+    "./errors": "./src/domain/errors/TrailerCodecError.js",
+    "./validation-error": "./src/domain/errors/ValidationError.js"
+  },
+  "scripts": {
+    "test": "vitest run test/unit",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "author": "James Ross <james@flyingrobots.dev>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@git-stunts/plumbing": "^2.7.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "vitest": "^3.0.0"
+  },
+  "files": [
+    "src",
+    "index.js",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "CHANGELOG.md"
+  ]
+}
