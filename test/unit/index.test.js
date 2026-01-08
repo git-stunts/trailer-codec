@@ -11,11 +11,12 @@ describe('createMessageHelpers', () => {
   });
 
   it('throws a TypeError for object inputs', () => {
-    const helpers = createMessageHelpers({
-      service: { decode: vi.fn(() => ({})), encode: vi.fn(() => '') },
-    });
+    const service = { decode: vi.fn(() => ({})), encode: vi.fn(() => '') };
+    const helpers = createMessageHelpers({ service });
 
     expect(() => helpers.decodeMessage({ foo: 'bar' })).toThrow(TypeError);
+    expect(service.decode).not.toHaveBeenCalled();
+    expect(service.encode).not.toHaveBeenCalled();
   });
 
   it('throws a TypeError for objects with message property', () => {
