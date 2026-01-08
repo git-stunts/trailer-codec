@@ -18,10 +18,17 @@ export default class GitTrailer {
         const code = valueIssue
           ? ValidationError.CODE_TRAILER_VALUE_INVALID
           : ValidationError.CODE_TRAILER_INVALID;
+        const normalizedKey = key?.toLowerCase?.() ?? '';
+        const rawValue = value ?? '';
         throw new ValidationError(
-          `Invalid trailer: ${error.issues.map((i) => i.message).join(', ')}`,
+          `Invalid trailer '${normalizedKey}' (value='${rawValue}'): ${error.issues.map((i) => i.message).join(', ')}. See docs/ADVANCED.md#custom-validation-rules.`,
           code,
-          { issues: error.issues }
+          {
+            issues: error.issues,
+            key: normalizedKey,
+            value: rawValue,
+            docs: 'docs/ADVANCED.md#custom-validation-rules',
+          }
         );
       }
       throw error;

@@ -1,10 +1,10 @@
 import GitCommitMessage from '../entities/GitCommitMessage.js';
 import GitTrailer from '../value-objects/GitTrailer.js';
-import ValidationError from '../errors/ValidationError.js';
 import { getDefaultTrailerSchemaBundle } from '../schemas/GitTrailerSchema.js';
 import TrailerParser from './TrailerParser.js';
-
-const MAX_MESSAGE_SIZE = 5 * 1024 * 1024;
+import MessageNormalizer from './helpers/MessageNormalizer.js';
+import TitleExtractor from './helpers/TitleExtractor.js';
+import BodyComposer from './helpers/BodyComposer.js';
 
 const defaultTrailerFactory = (key, value, schema) => new GitTrailer(key, value, schema);
 
@@ -13,10 +13,18 @@ export default class TrailerCodecService {
     schemaBundle = getDefaultTrailerSchemaBundle(),
     trailerFactory = defaultTrailerFactory,
     parser = null,
+    messageNormalizer = new MessageNormalizer(),
+    titleExtractor = new TitleExtractor(),
+    bodyComposer = new BodyComposer(),
+    formatters = {},
   } = {}) {
     this.schemaBundle = schemaBundle;
     this.trailerFactory = trailerFactory;
     this.parser = parser ?? new TrailerParser({ keyPattern: schemaBundle.keyPattern });
+    this.messageNormalizer = messageNormalizer;
+    this.titleExtractor = titleExtractor;
+    this.bodyComposer = bodyComposer;
+    this.formatters = formatters;
   }
 
   decode(message) {
@@ -29,49 +37,38 @@ export default class TrailerCodecService {
 
     this._guardMessageSize(message);
     const lines = this._prepareLines(message);
-    const title = this._consumeTitle(lines);
-    const { bodyLines, trailerLines } = this.parser.split(lines);
+    const { title, nextIndex } = this._consumeTitle(lines);
+    const remainder = lines.slice(nextIndex);
+    const { bodyLines, trailerLines } = this.parser.split(remainder);
     const body = this._composeBody(bodyLines);
     const trailers = this._buildTrailers(trailerLines);
 
     return new GitCommitMessage(
       { title, body, trailers },
-      { trailerSchema: this.schemaBundle.schema }
+      { trailerSchema: this.schemaBundle.schema, formatters: this.formatters }
     );
   }
 
   encode(messageEntity) {
     if (!(messageEntity instanceof GitCommitMessage)) {
-      messageEntity = new GitCommitMessage(messageEntity, { trailerSchema: this.schemaBundle.schema });
+      messageEntity = new GitCommitMessage(messageEntity, {
+        trailerSchema: this.schemaBundle.schema,
+        formatters: this.formatters,
+      });
     }
     return messageEntity.toString();
   }
 
   _prepareLines(message) {
-    return message.replace(/\r\n/g, '\n').split('\n');
+    return this.messageNormalizer.normalizeLines(message);
   }
 
   _consumeTitle(lines) {
-    const title = lines.shift() || '';
-    if (lines.length > 0 && lines[0].trim() === '') {
-      lines.shift();
-    }
-    return title;
+    return this.titleExtractor.extract(lines);
   }
 
   _composeBody(lines) {
-    let start = 0;
-    let end = lines.length;
-    while (start < end && lines[start].trim() === '') {
-      start++;
-    }
-    while (end > start && lines[end - 1].trim() === '') {
-      end--;
-    }
-    if (start >= end) {
-      return '';
-    }
-    return lines.slice(start, end).join('\n');
+    return this.bodyComposer.compose(lines);
   }
 
   _buildTrailers(lines) {
@@ -85,12 +82,6 @@ export default class TrailerCodecService {
   }
 
   _guardMessageSize(message) {
-    if (message.length > MAX_MESSAGE_SIZE) {
-      throw new ValidationError(
-        `Message exceeds ${MAX_MESSAGE_SIZE} bytes`,
-        ValidationError.CODE_MESSAGE_TOO_LARGE,
-        { messageLength: message.length, maxSize: MAX_MESSAGE_SIZE }
-      );
-    }
+    this.messageNormalizer.guardMessageSize(message);
   }
 }
