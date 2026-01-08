@@ -32,6 +32,16 @@ A robust encoder/decoder for structured metadata within Git commit messages. Bui
 npm install @git-stunts/trailer-codec
 ```
 
+## 🛠️ Developer & Testing
+
+- **Node.js ≥ 20** matches the `engines` field in `package.json` and is required for Vitest/ESM support.
+- `npm test` runs the Vitest suite, `npm run lint` validates the code with ESLint, and `npm run format` formats files with Prettier; all scripts target the entire repo root.
+- Consult `TESTING.md` for run modes, test filters, and tips for extending the suite before submitting contributions.
+
+## ☂️ Peer Dependencies
+
+`@git-stunts/trailer-codec` is built on top of **Zod v4**. If you install it in an existing project, ensure `zod` is also installed (>= 4.3.5) so all runtime schemas resolve cleanly.
+
 ## 🛠️ Usage
 
 ### Basic Encoding/Decoding
@@ -61,6 +71,36 @@ console.log(decoded.title);      // "feat: add user authentication"
 console.log(decoded.trailers);   // { 'signed-off-by': 'James Ross', 'reviewed-by': 'Alice Smith' }
 ```
 
+### Body Formatting
+
+`decodeMessage` now trims the decoded body by default, returning the content exactly as stored; no extra newline is appended automatically. If you still need the trailing newline (for example when writing the decoded body back into a commit template), instantiate the helpers or facade with `bodyFormatOptions: { keepTrailingNewline: true }`:
+
+```javascript
+import TrailerCodec from '@git-stunts/trailer-codec';
+
+const codec = new TrailerCodec({ bodyFormatOptions: { keepTrailingNewline: true } });
+const payload = codec.decode('Title\n\nBody\n');
+console.log(payload.body); // 'Body\n'
+```
+
+You can also call the exported `formatBodySegment(body, { keepTrailingNewline: true })` helper directly when you need the formatting logic elsewhere.
+
+### Configured Codec Builder
+
+When you need a prewired codec (custom key patterns, parser tweaks, formatter hooks), use `createConfiguredCodec({ keyPattern, keyMaxLength, parserOptions })`. It builds a schema bundle, parser, and service for you, and returns helpers so you can immediately call `decodeMessage`/`encodeMessage`:
+
+```javascript
+import { createConfiguredCodec } from '@git-stunts/trailer-codec';
+
+const { decodeMessage } = createConfiguredCodec({
+  keyPattern: '[A-Za-z._-]+',
+  keyMaxLength: 120,
+  parserOptions: { keyPattern: '[A-Za-z._-]+' },
+});
+
+decodeMessage('Title\n\nCustom.Key: value');
+```
+
 ### Using Domain Entities
 
 ```javascript
@@ -87,6 +127,14 @@ const codec = new TrailerCodec();
 const roundTrip = codec.decode(codec.encode({ title: 'sync', trailers: [{ key: 'Status', value: 'done' }] }));
 console.log(roundTrip.trailers['status']); // "done"
 ```
+
+### Public API Helpers & Configuration
+
+- `formatBodySegment(body, { keepTrailingNewline = false })` mirrors the helper that powers `decodeMessage`, so you can reuse the same trimming logic wherever you render bodies or build templates; pass `keepTrailingNewline: true` when you need the trailing `\n`.
+- `createMessageHelpers({ service, bodyFormatOptions })` returns `{ decodeMessage, encodeMessage }` bound to the provided service. It accepts `bodyFormatOptions` for body formatting and lets you reuse the helper contract without instantiating `TrailerCodec`.
+- `TrailerCodec` is a thin class that wraps `createMessageHelpers()`; supply a custom `service` or `bodyFormatOptions` to swap in your own parser/format configuration.
+- `createConfiguredCodec({ keyPattern, keyMaxLength, parserOptions, formatters, bodyFormatOptions })` composes a schema bundle (`createGitTrailerSchemaBundle`), `TrailerParser`, `TrailerCodecService`, and helper set so you can configure patterns, length limits, parser options, and formatters in one call.
+- `TrailerCodecService` exposes schemaBundle, parser, trailer factory, formatter hooks, and the helper classes (`MessageNormalizer`, `TitleExtractor`, `BodyComposer`). For a deep explanation of its injection points and how to safely customize decoding/encoding, see `docs/SERVICE.md`.
 
 ## ✅ Validation Rules
 
@@ -115,7 +163,7 @@ Trailer codec enforces strict validation:
 | `TRAILER_VALUE_INVALID` | Trailer value contains newline characters | Remove newlines from the value before encoding |
 | `TRAILER_INVALID` | Trailer key or value fails schema validation | Adjust the key/value or pass a custom schema bundle via `TrailerCodecService` |
 
-Each code is available on the thrown `ValidationError`, and `docs/ADVANCED.md` shows how to react programmatically.
+Each code appears on the thrown `ValidationError` (`src/domain/errors/ValidationError.js`), so you can read `error.code` and `error.meta` to respond. See `API_REFERENCE.md#validation-errors` for the class signature and recommended recovery guidance for each code.
 
 ## 🛡️ Security
 
@@ -134,6 +182,10 @@ See [SECURITY.md](SECURITY.md) for details.
 - [`docs/MIGRATION.md`](docs/MIGRATION.md) — Notes for upgrading from earlier versions
 - [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — Micro-benchmark insights
 - [`docs/RELEASE.md`](docs/RELEASE.md) — Checklist for version bumps and npm publishing
+- [`docs/INTEGRATION.md`](docs/INTEGRATION.md) — Git log scripting, streaming decoder, and Git-CMS filtering recipes
+- [`docs/SERVICE.md`](docs/SERVICE.md) — How `TrailerCodecService` wires schema, parser, and formatter helpers for customization
+- [`API_REFERENCE.md`](API_REFERENCE.md) — Complete catalog of the public exports, their inputs/outputs, and notable knobs
+- [`TESTING.md`](TESTING.md) — How to run/extend the Vitest, lint, and format scripts plus contributor tips
 
 ## 📄 License
 

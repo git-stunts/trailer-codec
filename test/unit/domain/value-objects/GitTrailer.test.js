@@ -40,6 +40,16 @@ describe('GitTrailer', () => {
     }
   });
 
+  it('includes normalized key, raw value, and docs link in message', () => {
+    try {
+      new GitTrailer('Key', '');
+    } catch (error) {
+      expect(error.message).toContain("Invalid trailer 'key' (value=''): ");
+      expect(error.message).toContain('docs/ADVANCED.md#custom-validation-rules');
+      expect(error.meta.docs).toBe('docs/ADVANCED.md#custom-validation-rules');
+    }
+  });
+
   it('converts to string correctly', () => {
     const trailer = new GitTrailer('Key', 'Value');
     expect(trailer.toString()).toBe('key: Value');

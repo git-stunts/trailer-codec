@@ -90,14 +90,29 @@ describe('TrailerCodecService', () => {
     expect(lines).toEqual(['Title', '']);
   });
 
-  it('consumes title and blank separator', () => {
+  it('consumes title and blank separator without shifting lines', () => {
     const lines = ['Title', '', 'Body'];
-    expect(service._consumeTitle(lines)).toBe('Title');
-    expect(lines).toEqual(['Body']);
+    const { title, nextIndex } = service._consumeTitle(lines);
+    expect(title).toBe('Title');
+    expect(nextIndex).toBe(2);
+    expect(lines).toEqual(['Title', '', 'Body']);
   });
 
   it('composes body without extra whitespace', () => {
     const body = service._composeBody(['', 'Line', '']);
     expect(body).toBe('Line');
+  });
+
+  it('respects formatter hooks when provided', () => {
+    const serviceWithFormatters = new TrailerCodecService({
+      formatters: {
+        titleFormatter: (value) => `(${value})`,
+        bodyFormatter: (value) => `[[${value}]]`,
+      },
+    });
+    const raw = 'Title \n\n Body ';
+    const msg = serviceWithFormatters.decode(raw);
+    expect(msg.title).toBe('(Title )');
+    expect(msg.body).toBe('[[ Body ]]');
   });
 });
