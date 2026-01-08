@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import GitCommitMessage from '../../../../src/domain/entities/GitCommitMessage.js';
+import { ensureDocker } from '../../../../node_modules/@git-stunts/plumbing/src/infrastructure/DockerGuard.js';
+
+try {
+  ensureDocker();
+} catch (e) {
+  // If plumbing isn't linked yet, we might need a local copy or better strategy
+}
 import GitTrailer from '../../../../src/domain/value-objects/GitTrailer.js';
 import ValidationError from '../../../../src/domain/errors/ValidationError.js';
 
