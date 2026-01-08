@@ -21,7 +21,7 @@ Use `npm test -- --watch` to run Vitest in watch mode while you iterate.
 
 - Add unit files under `test/unit/` following the existing structure (mirrors `src/`).
 - Mock dependencies with Vitest helpers (`vi.fn`, `vi.mock`) when you do not need to exercise the real parser/service.
-- Update snapshots, if any, by running `npm test -- -u` inside the relevant suite.
+- Snapshot tests (for serialized codec outputs or CLI/help text) verify that binary/JSON/text outputs remain stable. Regenerate them only after an intentional, reviewed change: run `npm test -- -u` locally, inspect the diff carefully, include the updated snapshots in the same PR with a clear rationale, and rely on CI to flag any unexpected snapshot drift before the merge.
 
 ## Troubleshooting
 
