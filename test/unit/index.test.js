@@ -28,11 +28,14 @@ describe('createMessageHelpers', () => {
   });
 
   it('honors body format options for trailing newline', () => {
-    const service = { decode: vi.fn(() => ({ title: 'with body', body: 'content', trailers: [] })), encode: vi.fn(() => 'ok') };
+    const service = { decode: vi.fn(() => ({ title: 'with body', body: 'content', trailers: [] })), encode: vi.fn() };
     const helpers = createMessageHelpers({ service, bodyFormatOptions: { keepTrailingNewline: true } });
-    const output = helpers.decodeMessage('ignored');
+    const input = 'ignored';
+    const output = helpers.decodeMessage(input);
 
     expect(output.body).toBe('content\n');
+    expect(service.decode).toHaveBeenCalledWith(input);
+    expect(service.encode).not.toHaveBeenCalled();
   });
 
   it('defaults to trimmed body without newline', () => {
