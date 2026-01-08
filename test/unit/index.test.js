@@ -41,6 +41,28 @@ describe('createMessageHelpers', () => {
 
     expect(output.body).toBe('trimmed');
   });
+
+  it('throws if the service returns a null trailers array', () => {
+    const service = { decode: vi.fn(() => ({ title: 'ok', body: '', trailers: null })), encode: vi.fn(() => '') };
+    const helpers = createMessageHelpers({ service });
+    expect(() => helpers.decodeMessage('ignored')).toThrow(TypeError);
+  });
+
+  it('throws when duplicate trailer keys are returned', () => {
+    const service = {
+      decode: vi.fn(() => ({
+        title: 'ok',
+        body: '',
+        trailers: [
+          { key: 'foo', value: '1' },
+          { key: 'foo', value: '2' },
+        ],
+      })),
+      encode: vi.fn(() => ''),
+    };
+    const helpers = createMessageHelpers({ service });
+    expect(() => helpers.decodeMessage('ignored')).toThrow(/Duplicate trailer key/);
+  });
 });
 
 describe('formatBodySegment', () => {
