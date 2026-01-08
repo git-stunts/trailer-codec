@@ -144,20 +144,11 @@ console.log(msg.toString());
 
 #### Public API Helpers & Configuration
 
-#### Helpers
-
-`formatBodySegment(body, { keepTrailingNewline = false })` mirrors the helper that powers `decodeMessage`, so you can reuse the same trimming logic wherever you render bodies or build templates; pass `keepTrailingNewline: true` when you need the trailing `\n`.  
-`createMessageHelpers({ service, bodyFormatOptions })` returns `{ decodeMessage, encodeMessage }` bound to the provided service. It accepts `bodyFormatOptions` for body formatting and lets you reuse the helper contract without instantiating `TrailerCodec`.
-
-#### `TrailerCodec`
-
-`TrailerCodec` is a thin class that wraps `createMessageHelpers()`; supply a custom `service` or `bodyFormatOptions` to swap in your own parser/format configuration.
-
-#### `createConfiguredCodec(...)`
-
-`createConfiguredCodec({ keyPattern, keyMaxLength, parserOptions, formatters, bodyFormatOptions })` composes a schema bundle (`createGitTrailerSchemaBundle`), `TrailerParser`, `TrailerCodecService`, and helper set so you can configure patterns, length limits, parser options, and formatters in one call.
-
-`TrailerCodecService` exposes schemaBundle, parser, trailer factory, formatter hooks, and the helper classes (`MessageNormalizer`, `TitleExtractor`, `BodyComposer`). For a deep explanation of its injection points and how to safely customize decoding/encoding, see `docs/SERVICE.md`.
+- `formatBodySegment(body, { keepTrailingNewline = false })` mirrors the helper powering `decodeMessage`, trimming whitespace while optionally preserving the trailing newline when you plan to write the body back into a template.
+- `createMessageHelpers({ service, bodyFormatOptions })` returns `{ decodeMessage, encodeMessage }` bound to the provided `TrailerCodecService`; pass `bodyFormatOptions` to control whether decoded bodies keep their trailing newline.
+- `TrailerCodec` wraps `createMessageHelpers()` so you can instantiate a codec class with custom `service` or `bodyFormatOptions` and still leverage the helper contract via `encode()`/`decode()`.
+- `createConfiguredCodec({ keyPattern, keyMaxLength, parserOptions, formatters, bodyFormatOptions })` wires together `createGitTrailerSchemaBundle`, `TrailerParser`, `TrailerCodecService`, and the helper pair, letting you configure key validation, parser heuristics, formatting hooks, and body formatting in a single call.
+- `TrailerCodecService` exposes the schema bundle, parser, trailer factory, formatter hooks, and helper classes (`MessageNormalizer`, `TitleExtractor`, `BodyComposer`); see `docs/SERVICE.md` for a deeper explanation of how to customize each stage without touching the core service.
 
 ## ✅ Validation Rules
 
