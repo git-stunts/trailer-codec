@@ -32,12 +32,17 @@ describe('GitTrailer', () => {
   });
 
   it('exposes CODE_TRAILER_VALUE_INVALID when value includes newline', () => {
-    try {
-      new GitTrailer('Key', 'Line\nBreak');
-    } catch (error) {
-      expect(error).toBeInstanceOf(ValidationError);
-      expect(error.code).toBe(ValidationError.CODE_TRAILER_VALUE_INVALID);
-    }
+    const attempt = () => {
+      try {
+        new GitTrailer('Key', 'Line\nBreak');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(error.code).toBe(ValidationError.CODE_TRAILER_VALUE_INVALID);
+        throw error;
+      }
+    };
+
+    expect(attempt).toThrow(ValidationError);
   });
 
   it('includes normalized key, raw value, and docs link in message', () => {
