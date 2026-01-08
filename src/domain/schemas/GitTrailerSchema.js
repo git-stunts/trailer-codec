@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
 /**
- * Zod schema for a single Git trailer.
+ * Regex fragments that describe what characters are allowed in trailer keys.
+ * Exported as both an anchored regex (`TRAILER_KEY_REGEX`) and a loose pattern
+ * (`TRAILER_KEY_PATTERN`) so parsers, validators, and documentation can share
+ * the same definition without accidentally duplicating anchors.
  */
-/**
- * Regex pattern for valid trailer keys.
- * Used in both schema validation and service parsing to ensure consistency.
- */
-export const TRAILER_KEY_REGEX = /^[A-Za-z0-9_-]+$/;
+export const TRAILER_KEY_PATTERN = '[A-Za-z0-9_-]+';
+export const TRAILER_KEY_REGEX = new RegExp(`^${TRAILER_KEY_PATTERN}$`);
 
 export const GitTrailerSchema = z.object({
   key: z

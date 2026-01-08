@@ -16,7 +16,7 @@
  */
 _findTrailerStartIndex(lines) {
   let trailerStart = lines.length;
-  const trailerLineTest = new RegExp(`^${TRAILER_KEY_REGEX.source}: `);
+  const trailerLineTest = new RegExp(`^${TRAILER_KEY_PATTERN}: `);
 
   for (let i = lines.length - 1; i >= 0; i--) {
     const line = lines[i].trim();
@@ -64,7 +64,7 @@ This constraint is what makes trailers useful as a database primitive. Each comm
 
 3. **Security-First "Stunt" Engineering**
 
-The `TRAILER_KEY_REGEX` constant ensures we're using the *same validation rules* for parsing that we use for encoding. This prevents an entire class of injection attacks where malicious input could masquerade as valid trailers.
+The `TRAILER_KEY_PATTERN` constant ensures both parsing and encoding rely on the exact same character rules. The schema builds an anchored `TRAILER_KEY_REGEX` from that pattern, so we avoid duplicated anchors while keeping the validation contract in one place. This prevents an entire class of injection attacks where malicious input could masquerade as valid trailers.
 
 Combined with the 5MB message size guard and 100-character key length limit (not shown in this snippet but present in the full service), this code demonstrates that **"stunt" doesn't mean "reckless."** You can subvert Git's intended usage while maintaining production-grade security controls.
 

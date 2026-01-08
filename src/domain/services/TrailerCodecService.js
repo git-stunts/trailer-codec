@@ -1,7 +1,7 @@
 import GitCommitMessage from '../entities/GitCommitMessage.js';
 import GitTrailer from '../value-objects/GitTrailer.js';
 import ValidationError from '../errors/ValidationError.js';
-import { TRAILER_KEY_REGEX } from '../schemas/GitTrailerSchema.js';
+import { TRAILER_KEY_PATTERN } from '../schemas/GitTrailerSchema.js';
 
 /**
  * Maximum message size (5MB) to prevent DoS attacks via unbounded input.
@@ -56,7 +56,7 @@ export default class TrailerCodecService {
     const trailers = [];
 
     // Parse trailer lines using consistent regex from schema
-    const trailerLineRegex = new RegExp(`^(${TRAILER_KEY_REGEX.source}):\\s*(.*)$`);
+    const trailerLineRegex = new RegExp(`^(${TRAILER_KEY_PATTERN}):\\s*(.*)$`);
     trailerLines.forEach((line) => {
       const match = line.match(trailerLineRegex);
       if (match) {
@@ -83,7 +83,7 @@ export default class TrailerCodecService {
    */
   _findTrailerStartIndex(lines) {
     let trailerStart = lines.length;
-    const trailerLineTest = new RegExp(`^${TRAILER_KEY_REGEX.source}: `);
+    const trailerLineTest = new RegExp(`^${TRAILER_KEY_PATTERN}: `);
 
     for (let i = lines.length - 1; i >= 0; i--) {
       const line = lines[i].trim();
