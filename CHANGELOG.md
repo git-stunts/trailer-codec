@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+- Exposed `decodeMessage`/`encodeMessage` helpers for faster integration without instantiating the facade.
+- Documented advanced/custom validation workflows (`docs/ADVANCED.md`), parser behavior (`docs/PARSER.md`), migration guidance, performance notes, and release steps (`docs/MIGRATION.md`, `docs/PERFORMANCE.md`, `docs/RELEASE.md`).
+- Added schema factory (`createGitTrailerSchemaBundle`) so downstream code can override trailer validation rules.
+
 ### Changed
-- Restored simpler local `vitest` scripts and removed the Docker guard setup so tests run directly.
-- Dropped the `@git-stunts/docker-guard` and `@git-stunts/plumbing` dependencies; the package now only relies on `zod`.
+- Trimmed commit bodies without double allocation and enforced a blank line before trailers.
+- Tightened trailer validation (newline-free values) and exposed the schema bundle to service/fixtures, pairing with the new helper wrappers.
+- Removed the docker guard dependency so tests run locally without the external guard enforcement.
+- Upgraded `zod` dependency to the latest 3.25.x release.
 
 
 ## [2.0.0] - 2026-01-08

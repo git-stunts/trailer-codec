@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import TrailerCodecService from '../../../../src/domain/services/TrailerCodecService.js';
 import GitCommitMessage from '../../../../src/domain/entities/GitCommitMessage.js';
+import ValidationError from '../../../../src/domain/errors/ValidationError.js';
 
 describe('TrailerCodecService', () => {
   const service = new TrailerCodecService();
@@ -58,5 +59,19 @@ describe('TrailerCodecService', () => {
     expect(msg.title).toBe('Title');
     expect(msg.trailers).toHaveLength(1);
     expect(msg.trailers[0].value).toBe('Value');
+  });
+
+  it('rejects trailers without a blank line separator', () => {
+    const raw = 'Title\nBody\nSigned-off-by: Me';
+    expect(() => service.decode(raw)).toThrow(ValidationError);
+  });
+
+  it('rejects trailer values containing line breaks', () => {
+    expect(() =>
+      service.encode({
+        title: 'Title',
+        trailers: { 'Key': 'Value\nInjected' }
+      })
+    ).toThrow(ValidationError);
   });
 });

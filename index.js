@@ -3,56 +3,64 @@
  */
 
 import TrailerCodecService from './src/domain/services/TrailerCodecService.js';
-import GitCommitMessage from './src/domain/entities/GitCommitMessage.js';
-import GitTrailer from './src/domain/value-objects/GitTrailer.js';
 import TrailerCodecError from './src/domain/errors/TrailerCodecError.js';
 import ValidationError from './src/domain/errors/ValidationError.js';
 
-export {
-  GitCommitMessage,
-  GitTrailer,
-  TrailerCodecService,
-  TrailerCodecError,
-  ValidationError
-};
+export { default as GitCommitMessage } from './src/domain/entities/GitCommitMessage.js';
+export { default as GitTrailer } from './src/domain/value-objects/GitTrailer.js';
+export { default as TrailerCodecService } from './src/domain/services/TrailerCodecService.js';
+export { default as TrailerCodecError } from './src/domain/errors/TrailerCodecError.js';
+export { default as ValidationError } from './src/domain/errors/ValidationError.js';
+export { createGitTrailerSchemaBundle, TRAILER_KEY_PATTERN, TRAILER_KEY_REGEX } from './src/domain/schemas/GitTrailerSchema.js';
 
 /**
  * Facade class for the Trailer Codec library.
  * Preserved for backward compatibility.
  */
+const defaultService = new TrailerCodecService();
+
+function normalizeTrailers(entity) {
+  return entity.trailers.reduce((acc, trailer) => {
+    acc[trailer.key] = trailer.value;
+    return acc;
+  }, {});
+}
+
+function normalizeBody(body) {
+  return body ? `${body}\n` : '';
+}
+
+export function decodeMessage(input) {
+  const message = typeof input === 'string' ? input : input?.message ?? '';
+  const entity = defaultService.decode(message);
+  return {
+    title: entity.title,
+    body: normalizeBody(entity.body),
+    trailers: normalizeTrailers(entity),
+  };
+}
+
+export function encodeMessage({ title, body, trailers = {} }) {
+  const trailerArray = Object.entries(trailers).map(([key, value]) => ({ key, value }));
+  return defaultService.encode({ title, body, trailers: trailerArray });
+}
+
 export default class TrailerCodec {
   constructor() {
     this.service = new TrailerCodecService();
   }
 
-  /**
-   * Decodes a raw commit message string into a plain object structure.
-   * @param {Object} input
-   * @param {string} input.message - The raw commit message.
-   * @returns {{ title: string, body: string, trailers: Record<string, string> }}
-   */
-  decode({ message }) {
+  decode(input) {
+    const message = typeof input === 'string' ? input : input?.message ?? '';
     const entity = this.service.decode(message);
     return {
       title: entity.title,
-      body: entity.body ? `${entity.body}\n` : '',
-      trailers: entity.trailers.reduce((acc, t) => {
-        acc[t.key] = t.value;
-        return acc;
-      }, {}),
+      body: normalizeBody(entity.body),
+      trailers: normalizeTrailers(entity),
     };
   }
 
-  /**
-   * Encodes commit message parts into a string.
-   * @param {Object} input
-   * @param {string} input.title
-   * @param {string} [input.body]
-   * @param {Record<string, string>} [input.trailers]
-   * @returns {string}
-   */
   encode({ title, body, trailers = {} }) {
-    const trailerArray = Object.entries(trailers).map(([key, value]) => ({ key, value }));
-    return this.service.encode({ title, body, trailers: trailerArray });
+    return encodeMessage({ title, body, trailers });
   }
 }

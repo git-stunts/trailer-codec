@@ -37,17 +37,14 @@ npm install @git-stunts/trailer-codec
 ### Basic Encoding/Decoding
 
 ```javascript
-import TrailerCodec from '@git-stunts/trailer-codec';
+import { encodeMessage, decodeMessage } from '@git-stunts/trailer-codec';
 
-const codec = new TrailerCodec();
-
-// Encode from plain object
-const message = codec.encode({
+const message = encodeMessage({
   title: 'feat: add user authentication',
   body: 'Implemented OAuth2 flow with JWT tokens.',
   trailers: {
     'Signed-off-by': 'James Ross',
-    'Reviewed-by': 'Big Dogg'
+    'Reviewed-by': 'Alice Smith'
   }
 });
 
@@ -59,10 +56,9 @@ console.log(message);
 // signed-off-by: James Ross
 // reviewed-by: Alice Smith
 
-// Decode back to structured data
-const decoded = codec.decode(message);
+const decoded = decodeMessage(message);
 console.log(decoded.title);      // "feat: add user authentication"
-console.log(decoded.trailers);   // [GitTrailer, GitTrailer]
+console.log(decoded.trailers);   // { 'signed-off-by': 'James Ross', 'reviewed-by': 'Alice Smith' }
 ```
 
 ### Using Domain Entities
@@ -82,6 +78,16 @@ const msg = new GitCommitMessage({
 console.log(msg.toString());
 ```
 
+### Helper Facade (optional)
+
+```javascript
+import TrailerCodec from '@git-stunts/trailer-codec';
+
+const codec = new TrailerCodec();
+const roundTrip = codec.decode(codec.encode({ title: 'sync', trailers: [{ key: 'Status', value: 'done' }] }));
+console.log(roundTrip.trailers['status']); // "done"
+```
+
 ## ✅ Validation Rules
 
 Trailer codec enforces strict validation:
@@ -96,14 +102,27 @@ Trailer codec enforces strict validation:
 
 **Key Normalization:** All trailer keys are automatically normalized to lowercase (e.g., `Signed-Off-By` → `signed-off-by`).
 
+**Blank-Line Guard:** Trailers must be separated from the body by a blank line; committing without that empty line results in a `ValidationError`.
+
+**Trailer Line Limits:** Trailer values cannot contain carriage returns or line feeds.
+
 ## 🛡️ Security
 
 - **No Code Execution**: Pure string manipulation, no `eval()` or dynamic execution
 - **DoS Protection**: Rejects messages > 5MB
 - **ReDoS Prevention**: Max key length limits regex execution time
 - **No Git Subprocess**: Library performs no I/O operations
+- **Line Injection Guard**: Trailer values omit newline characters so no unexpected trailers can be injected
 
 See [SECURITY.md](SECURITY.md) for details.
+
+## 📚 Additional Documentation
+
+- [`docs/ADVANCED.md`](docs/ADVANCED.md) — Custom schema injection, validation overrides, and advanced integration patterns
+- [`docs/PARSER.md`](docs/PARSER.md) — Step-by-step explanation of the backward-walk parser
+- [`docs/MIGRATION.md`](docs/MIGRATION.md) — Notes for upgrading from earlier versions
+- [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — Micro-benchmark insights
+- [`docs/RELEASE.md`](docs/RELEASE.md) — Checklist for version bumps and npm publishing
 
 ## 📄 License
 
