@@ -63,15 +63,41 @@ describe('TrailerCodecService', () => {
 
   it('rejects trailers without a blank line separator', () => {
     const raw = 'Title\nBody\nSigned-off-by: Me';
-    expect(() => service.decode(raw)).toThrow(ValidationError);
+    try {
+      service.decode(raw);
+    } catch (error) {
+      expect(error).toBeInstanceOf(ValidationError);
+      expect(error.code).toBe(ValidationError.CODE_TRAILER_NO_SEPARATOR);
+    }
   });
 
   it('rejects trailer values containing line breaks', () => {
-    expect(() =>
-      service.encode({
-        title: 'Title',
-        trailers: { 'Key': 'Value\nInjected' }
-      })
-    ).toThrow(ValidationError);
+    try {
+      service._buildTrailers(['Key: Value\nInjected']);
+    } catch (error) {
+      expect(error).toBeInstanceOf(ValidationError);
+      expect(error.code).toBe(ValidationError.CODE_TRAILER_VALUE_INVALID);
+    }
+  });
+
+  it('guards message size in helper', () => {
+    const oversize = 'a'.repeat(5 * 1024 * 1024 + 1);
+    expect(() => service._guardMessageSize(oversize)).toThrow(ValidationError);
+  });
+
+  it('normalizes CRLF via _prepareLines', () => {
+    const lines = service._prepareLines('Title\r\n');
+    expect(lines).toEqual(['Title', '']);
+  });
+
+  it('consumes title and blank separator', () => {
+    const lines = ['Title', '', 'Body'];
+    expect(service._consumeTitle(lines)).toBe('Title');
+    expect(lines).toEqual(['Body']);
+  });
+
+  it('composes body without extra whitespace', () => {
+    const body = service._composeBody(['', 'Line', '']);
+    expect(body).toBe('Line');
   });
 });

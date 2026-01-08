@@ -20,7 +20,11 @@ export default class GitCommitMessage {
       );
     } catch (error) {
       if (error instanceof ZodError) {
-        throw new ValidationError(`Invalid commit message: ${error.issues.map((i) => i.message).join(', ')}`, { issues: error.issues });
+      throw new ValidationError(
+        `Invalid commit message: ${error.issues.map((i) => i.message).join(', ')}`,
+        ValidationError.CODE_COMMIT_MESSAGE_INVALID,
+        { issues: error.issues }
+      );
       }
       throw error;
     }

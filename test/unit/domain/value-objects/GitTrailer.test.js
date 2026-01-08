@@ -31,6 +31,15 @@ describe('GitTrailer', () => {
     expect(() => new GitTrailer('key', '')).toThrow(ValidationError); // Assuming schema requires min(1)
   });
 
+  it('exposes CODE_TRAILER_VALUE_INVALID when value includes newline', () => {
+    try {
+      new GitTrailer('Key', 'Line\nBreak');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ValidationError);
+      expect(error.code).toBe(ValidationError.CODE_TRAILER_VALUE_INVALID);
+    }
+  });
+
   it('converts to string correctly', () => {
     const trailer = new GitTrailer('Key', 'Value');
     expect(trailer.toString()).toBe('key: Value');

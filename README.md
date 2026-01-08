@@ -106,6 +106,17 @@ Trailer codec enforces strict validation:
 
 **Trailer Line Limits:** Trailer values cannot contain carriage returns or line feeds.
 
+### Validation Error Codes
+
+| Code | Trigger | Suggested Fix |
+| --- | --- | --- |
+| `TRAILER_TOO_LARGE` | Message exceeds 5MB | Split the commit or remove content until the payload fits |
+| `TRAILER_NO_SEPARATOR` | Missing blank line before trailers | Insert an empty line between the body and the trailer metadata |
+| `TRAILER_VALUE_INVALID` | Trailer value contains newline characters | Remove newlines from the value before encoding |
+| `TRAILER_INVALID` | Trailer key or value fails schema validation | Adjust the key/value or pass a custom schema bundle via `TrailerCodecService` |
+
+Each code is available on the thrown `ValidationError`, and `docs/ADVANCED.md` shows how to react programmatically.
+
 ## 🛡️ Security
 
 - **No Code Execution**: Pure string manipulation, no `eval()` or dynamic execution

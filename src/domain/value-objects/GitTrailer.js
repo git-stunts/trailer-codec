@@ -14,7 +14,15 @@ export default class GitTrailer {
       this.value = value.trim();
     } catch (error) {
       if (error instanceof ZodError) {
-        throw new ValidationError(`Invalid trailer: ${error.issues.map((i) => i.message).join(', ')}`, { issues: error.issues });
+        const valueIssue = error.issues.some((issue) => issue.path.includes('value'));
+        const code = valueIssue
+          ? ValidationError.CODE_TRAILER_VALUE_INVALID
+          : ValidationError.CODE_TRAILER_INVALID;
+        throw new ValidationError(
+          `Invalid trailer: ${error.issues.map((i) => i.message).join(', ')}`,
+          code,
+          { issues: error.issues }
+        );
       }
       throw error;
     }

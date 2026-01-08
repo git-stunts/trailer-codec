@@ -1,43 +1,43 @@
 import GitCommitMessage from '../entities/GitCommitMessage.js';
 import GitTrailer from '../value-objects/GitTrailer.js';
 import ValidationError from '../errors/ValidationError.js';
-import { getDefaultTrailerSchemaBundle, TRAILER_KEY_PATTERN } from '../schemas/GitTrailerSchema.js';
+import { getDefaultTrailerSchemaBundle } from '../schemas/GitTrailerSchema.js';
+import TrailerParser from './TrailerParser.js';
 
 const MAX_MESSAGE_SIZE = 5 * 1024 * 1024;
+
+const defaultTrailerFactory = (key, value, schema) => new GitTrailer(key, value, schema);
 
 export default class TrailerCodecService {
   constructor({
     schemaBundle = getDefaultTrailerSchemaBundle(),
-    trailerFactory = (key, value, schema) => new GitTrailer(key, value, schema),
+    trailerFactory = defaultTrailerFactory,
+    parser = null,
   } = {}) {
     this.schemaBundle = schemaBundle;
     this.trailerFactory = trailerFactory;
+    this.parser = parser ?? new TrailerParser({ keyPattern: schemaBundle.keyPattern });
   }
 
   decode(message) {
     if (!message) {
-      return new GitCommitMessage({ title: '', body: '', trailers: [] });
+      return new GitCommitMessage(
+        { title: '', body: '', trailers: [] },
+        { trailerSchema: this.schemaBundle.schema }
+      );
     }
 
     this._guardMessageSize(message);
+    const lines = this._prepareLines(message);
+    const title = this._consumeTitle(lines);
+    const { bodyLines, trailerLines } = this.parser.split(lines);
+    const body = this._composeBody(bodyLines);
+    const trailers = this._buildTrailers(trailerLines);
 
-    const lines = message.replace(/\r\n/g, '\n').split('\n');
-    const title = lines.shift() || '';
-
-    if (lines.length > 0 && lines[0].trim() === '') {
-      lines.shift();
-    }
-
-    const trailerStart = this._findTrailerStartIndex(lines);
-    this._validateTrailerSeparation(lines, trailerStart);
-
-    const bodyLines = lines.slice(0, trailerStart);
-    const trailerLines = lines.slice(trailerStart);
-
-    const body = this._trimBody(bodyLines);
-    const trailers = this._parseTrailerLines(trailerLines);
-
-    return new GitCommitMessage({ title, body, trailers });
+    return new GitCommitMessage(
+      { title, body, trailers },
+      { trailerSchema: this.schemaBundle.schema }
+    );
   }
 
   encode(messageEntity) {
@@ -47,53 +47,19 @@ export default class TrailerCodecService {
     return messageEntity.toString();
   }
 
-  _guardMessageSize(message) {
-    if (message.length > MAX_MESSAGE_SIZE) {
-      throw new ValidationError(
-        `Message exceeds ${MAX_MESSAGE_SIZE} bytes`,
-        { messageLength: message.length, maxSize: MAX_MESSAGE_SIZE }
-      );
-    }
+  _prepareLines(message) {
+    return message.replace(/\r\n/g, '\n').split('\n');
   }
 
-  _findTrailerStartIndex(lines) {
-    let trailerStart = lines.length;
-    const trailerLineTest = new RegExp(`^${TRAILER_KEY_PATTERN}: `);
-
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const line = lines[i].trim();
-
-      if (line === '') {
-        if (trailerStart === lines.length) {
-          continue;
-        }
-        break;
-      }
-
-      if (trailerLineTest.test(line)) {
-        trailerStart = i;
-      } else {
-        break;
-      }
+  _consumeTitle(lines) {
+    const title = lines.shift() || '';
+    if (lines.length > 0 && lines[0].trim() === '') {
+      lines.shift();
     }
-
-    return trailerStart;
+    return title;
   }
 
-  _validateTrailerSeparation(lines, trailerStart) {
-    if (trailerStart === lines.length) {
-      return;
-    }
-    const borderLine = trailerStart > 0 ? lines[trailerStart - 1] : '';
-    if (borderLine.trim() !== '') {
-      throw new ValidationError(
-        'Trailers must be separated from the body by a blank line',
-        { trailerStart, borderLine }
-      );
-    }
-  }
-
-  _trimBody(lines) {
+  _composeBody(lines) {
     let start = 0;
     let end = lines.length;
     while (start < end && lines[start].trim() === '') {
@@ -108,15 +74,23 @@ export default class TrailerCodecService {
     return lines.slice(start, end).join('\n');
   }
 
-  _parseTrailerLines(lines) {
-    const trailerLineRegex = new RegExp(`^(${TRAILER_KEY_PATTERN}):\\s*(.*)$`);
-    const trailers = [];
-    lines.forEach((line) => {
-      const match = line.match(trailerLineRegex);
+  _buildTrailers(lines) {
+    return lines.reduce((acc, line) => {
+      const match = this.parser.lineRegex.exec(line);
       if (match) {
-        trailers.push(this.trailerFactory(match[1], match[2], this.schemaBundle.schema));
+        acc.push(this.trailerFactory(match[1], match[2], this.schemaBundle.schema));
       }
-    });
-    return trailers;
+      return acc;
+    }, []);
+  }
+
+  _guardMessageSize(message) {
+    if (message.length > MAX_MESSAGE_SIZE) {
+      throw new ValidationError(
+        `Message exceeds ${MAX_MESSAGE_SIZE} bytes`,
+        ValidationError.CODE_MESSAGE_TOO_LARGE,
+        { messageLength: message.length, maxSize: MAX_MESSAGE_SIZE }
+      );
+    }
   }
 }
