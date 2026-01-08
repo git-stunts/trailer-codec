@@ -16,7 +16,7 @@ This library treats commit messages as **untrusted input** and validates them st
 
 - **No Git Execution**: This library does not spawn Git processes
 - **No File System Access**: Pure in-memory operations only
-- **No Network Access**: No external dependencies beyond @git-stunts/plumbing types
+- **No Network Access**: No runtime network access and zero external dependencies beyond the Zod validation library
 
 ## 🐞 Reporting a Vulnerability
 

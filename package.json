@@ -16,18 +16,14 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "sh -c 'if [ \"$GIT_STUNTS_DOCKER\" = \"1\" ]; then vitest run test/unit \"$@\"; else docker compose run --build --rm test npm test -- \"$@\"; fi' --",
-    "benchmark": "sh -c 'if [ \"$GIT_STUNTS_DOCKER\" = \"1\" ]; then vitest bench test/benchmark \"$@\"; else docker compose run --build --rm test npm run benchmark -- \"$@\"; fi' --",
+    "test": "vitest run test/unit \"$@\"",
+    "benchmark": "vitest bench test/benchmark \"$@\"",
     "lint": "eslint .",
-    "format": "prettier --write .",
-    "test:local": "vitest run test/unit",
-    "benchmark:local": "vitest bench test/benchmark"
+    "format": "prettier --write ."
   },
   "author": "James Ross <james@flyingrobots.dev>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@git-stunts/docker-guard": "^0.1.0",
-    "@git-stunts/plumbing": "^2.7.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

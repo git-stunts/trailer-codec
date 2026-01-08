@@ -25,7 +25,6 @@ A robust encoder/decoder for structured metadata within Git commit messages. Bui
 ## 📋 Prerequisites
 
 - **Node.js**: >= 20.0.0
-- **@git-stunts/plumbing**: >= 2.7.0
 
 ## 📦 Installation
 
@@ -48,7 +47,7 @@ const message = codec.encode({
   body: 'Implemented OAuth2 flow with JWT tokens.',
   trailers: {
     'Signed-off-by': 'James Ross',
-    'Reviewed-by': 'Alice Smith'
+    'Reviewed-by': 'Big Dogg'
   }
 });
 
@@ -105,12 +104,6 @@ Trailer codec enforces strict validation:
 - **No Git Subprocess**: Library performs no I/O operations
 
 See [SECURITY.md](SECURITY.md) for details.
-
-## 🧪 Testing
-
-- Tests execute inside Docker to protect the host repository.
-- Run `npm test` locally to build the `docker-compose` rig (`GIT_STUNTS_DOCKER=1` is injected inside the container) and `test/support/ensure-docker.js` verifies the guard before any Vitest suites begin.
-- For in-container debugging, shell into the image and run `npm test` (the guard prevents execution outside Docker).
 
 ## 📄 License
 
