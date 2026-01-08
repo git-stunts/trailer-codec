@@ -24,6 +24,7 @@ describe('createMessageHelpers', () => {
     const helpers = createMessageHelpers({ service });
 
     expect(() => helpers.decodeMessage({ message: 'Title\n\n' })).toThrow(TypeError);
+    expect(service.decode).not.toHaveBeenCalled();
   });
 
   it('honors body format options for trailing newline', () => {
