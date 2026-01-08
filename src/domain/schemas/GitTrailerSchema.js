@@ -3,6 +3,7 @@ import { z } from 'zod';
 const DEFAULT_KEY_PATTERN = '[A-Za-z0-9_\\-]+';
 const MAX_PATTERN_LENGTH = 256;
 const MAX_QUANTIFIERS = 16;
+const bundleCache = new Map();
 
 const buildKeyRegex = (keyPattern) => {
   if (keyPattern.length > MAX_PATTERN_LENGTH) {
@@ -34,14 +35,20 @@ export function createGitTrailerSchemaBundle({ keyPattern = DEFAULT_KEY_PATTERN,
   if (!Number.isInteger(keyMaxLength) || keyMaxLength <= 0) {
     throw new TypeError('keyMaxLength must be a positive integer');
   }
+
+  const cacheKey = `${keyPattern}::${keyMaxLength}`;
+  if (bundleCache.has(cacheKey)) {
+    return bundleCache.get(cacheKey);
+  }
+
   const keyRegex = buildKeyRegex(keyPattern);
-  return {
+  const bundle = {
     schema: z.object({
       key: z
         .string()
         .min(1)
         .max(keyMaxLength, 'Trailer key must not exceed character limit')
-      .regex(keyRegex, 'Trailer key must be alphanumeric or contain hyphens/underscores'),
+        .regex(keyRegex, `Trailer key must match the required pattern ${keyPattern}`),
       value: z
         .string()
         .min(1)
@@ -50,6 +57,9 @@ export function createGitTrailerSchemaBundle({ keyPattern = DEFAULT_KEY_PATTERN,
     keyPattern,
     keyRegex,
   };
+
+  bundleCache.set(cacheKey, bundle);
+  return bundle;
 }
 
 const DEFAULT_SCHEMA_BUNDLE = createGitTrailerSchemaBundle();
