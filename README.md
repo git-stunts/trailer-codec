@@ -47,15 +47,16 @@ npm install @git-stunts/trailer-codec
 ### Basic Encoding/Decoding
 
 ```javascript
-import { encodeMessage, decodeMessage } from '@git-stunts/trailer-codec';
+import TrailerCodec from '@git-stunts/trailer-codec';
 
-const message = encodeMessage({
+const codec = new TrailerCodec();
+const message = codec.encode({
   title: 'feat: add user authentication',
   body: 'Implemented OAuth2 flow with JWT tokens.',
-  trailers: {
-    'Signed-off-by': 'James Ross',
-    'Reviewed-by': 'Alice Smith'
-  }
+  trailers: [
+    { key: 'Signed-off-by', value: 'James Ross' },
+    { key: 'Reviewed-by', value: 'Alice Smith' },
+  ],
 });
 
 console.log(message);
@@ -66,16 +67,16 @@ console.log(message);
 // signed-off-by: James Ross
 // reviewed-by: Alice Smith
 
-const decoded = decodeMessage(message);
+const decoded = codec.decode(message);
 console.log(decoded.title);      // "feat: add user authentication"
 console.log(decoded.trailers);   // { 'signed-off-by': 'James Ross', 'reviewed-by': 'Alice Smith' }
 ```
 
 ### API Patterns
 
-- **Primary entry points**: `encodeMessage()` and `decodeMessage()` are the recommended helpers for most integrations; they share the same `TrailerCodecService` instance and return plain objects so you can stay focused on payloads.
-- **Facade**: `TrailerCodec` wraps the helpers with class-based `encode()`/`decode()` methods when you want configuration close to instantiation and a dedicated instance for helper state.
-- **Advanced**: `createConfiguredCodec()` and direct `TrailerCodecService` usage let you swap schema bundles, parsers, formatters, or helper overrides when you need custom validation or formatting behavior.
+- **Primary entry point**: `TrailerCodec` is the main API; create an instance and call `encode()`/`decode()` to reuse a shared service and body formatting configuration.
+- **Facade**: `TrailerCodec` keeps configuration near instantiation while still leveraging `createMessageHelpers()` under the hood.
+- **Advanced**: `createConfiguredCodec()` and direct `TrailerCodecService` usage let you swap schema bundles, parsers, formatters, or helper overrides when you need custom validation or formatting behavior. The standalone helpers `encodeMessage()`/`decodeMessage()` remain available as deprecated convenience wrappers.
 
 ### Breaking Changes
 
