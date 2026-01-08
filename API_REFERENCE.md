@@ -55,7 +55,7 @@ new GitCommitMessage(
   - `messageNormalizer`, `titleExtractor`, `bodyComposer`: helper classes that normalize lines, extract the title, and compose the body.
   - `formatters`: optional `{ titleFormatter, bodyFormatter }` that run before serialization.
 - `decode(message)` enforces message size, normalizes lines, extracts the title, splits body/trailers with `TrailerParser`, composes the body, builds trailers with `trailerFactory`, and constructs a `GitCommitMessage`.
-- `encode(messageEntity)` accepts either a `GitCommitMessage` instance or a plain payload counted by the schema and returns a string.
+  - `encode(messageEntity)` accepts either a `GitCommitMessage` instance or a plain payload object, validates it against `GitCommitMessageSchema`, and returns the canonical commit string produced by the entity.
 
 ### `TrailerParser`
 - Constructor takes `{ keyPattern = TRAILER_KEY_PATTERN }`.
