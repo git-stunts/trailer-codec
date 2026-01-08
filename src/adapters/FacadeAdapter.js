@@ -1,11 +1,11 @@
 import TrailerCodecService from '../domain/services/TrailerCodecService.js';
 
 function normalizeInput(input) {
-  if (typeof input === 'string') {
+  if (typeof input === 'string' && input.length > 0) {
     return input;
   }
 
-  throw new TypeError('decode expects a raw string payload');
+  throw new TypeError('normalizeInput expects a non-empty string');
 }
 
 function normalizeTrailers(entity) {
