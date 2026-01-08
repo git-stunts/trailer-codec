@@ -12,12 +12,28 @@ export { default as TrailerCodecService } from './src/domain/services/TrailerCod
 export { default as TrailerCodecError } from './src/domain/errors/TrailerCodecError.js';
 export { default as ValidationError } from './src/domain/errors/ValidationError.js';
 export { createGitTrailerSchemaBundle, TRAILER_KEY_PATTERN, TRAILER_KEY_REGEX } from './src/domain/schemas/GitTrailerSchema.js';
+export { default as TrailerParser } from './src/domain/services/TrailerParser.js';
 
 /**
  * Facade class for the Trailer Codec library.
  * Preserved for backward compatibility.
  */
 const defaultService = new TrailerCodecService();
+let warnedAboutObjectInput = false;
+
+function normalizeInput(input) {
+  if (typeof input === 'string') {
+    return input;
+  }
+  if (input && typeof input === 'object' && 'message' in input) {
+    if (!warnedAboutObjectInput) {
+      console.warn('Passing an object to `decode` is deprecated; call `decode(message)` with the raw string instead.');
+      warnedAboutObjectInput = true;
+    }
+    return input.message ?? '';
+  }
+  return '';
+}
 
 function normalizeTrailers(entity) {
   return entity.trailers.reduce((acc, trailer) => {
@@ -31,7 +47,7 @@ function normalizeBody(body) {
 }
 
 export function decodeMessage(input) {
-  const message = typeof input === 'string' ? input : input?.message ?? '';
+  const message = normalizeInput(input);
   const entity = defaultService.decode(message);
   return {
     title: entity.title,
@@ -51,7 +67,7 @@ export default class TrailerCodec {
   }
 
   decode(input) {
-    const message = typeof input === 'string' ? input : input?.message ?? '';
+    const message = normalizeInput(input);
     const entity = this.service.decode(message);
     return {
       title: entity.title,

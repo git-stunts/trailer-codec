@@ -46,3 +46,17 @@ const data = decodeMessage(encodeMessage({ title: 'hello', trailers: { Foo: 'Bar
 ```
 
 Use this file as a reference when you need to extend validation rules without touching the core domain logic.
+
+## Custom Parser Strategies
+
+```javascript
+import { TrailerCodecService, TrailerParser, GitTrailer } from '@git-stunts/trailer-codec';
+
+const parser = new TrailerParser({ keyPattern: '[A-Za-z0-9.-]+' });
+const service = new TrailerCodecService({
+  parser,
+  trailerFactory: (key, value, schema) => new GitTrailer(key, value, schema)
+});
+```
+
+Pass your parser into `TrailerCodecService` so custom parsing strategies replace `_findTrailerStartIndex` and `_validateTrailerSeparation` without subclassing the service.
