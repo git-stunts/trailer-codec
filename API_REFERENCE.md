@@ -49,7 +49,7 @@ new GitCommitMessage(
 ### `TrailerCodecService`
 - Core decode/encode logic; see `docs/SERVICE.md` for how the pipeline is wired.
 - Constructor options:
-  - `schemaBundle`: result of `createGitTrailerSchemaBundle({ keyPattern, keyMaxLength })`.
+  - `schemaBundle`: result of `createGitTrailerSchemaBundle({ keyPattern, keyMaxLength })` (defaults: `keyPattern` = `[A-Za-z0-9_-]+`, `keyMaxLength` = `100`, see the schema section below).
   - `trailerFactory`: function that instantiates trailers (defaults to `GitTrailer`).
   - `parser`: instance of `TrailerParser`.
   - `messageNormalizer`, `titleExtractor`, `bodyComposer`: helper classes that normalize lines, extract the title, and compose the body.
