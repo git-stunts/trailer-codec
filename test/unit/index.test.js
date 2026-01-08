@@ -3,11 +3,11 @@ import { createMessageHelpers, formatBodySegment } from '../../index.js';
 
 describe('createMessageHelpers', () => {
   it('throws a TypeError for primitive inputs', () => {
-    const helpers = createMessageHelpers({
-      service: { decode: vi.fn(() => ({})), encode: vi.fn(() => '') },
-    });
+    const service = { decode: vi.fn(() => ({})), encode: vi.fn(() => '') };
+    const helpers = createMessageHelpers({ service });
 
     expect(() => helpers.decodeMessage(123)).toThrow(TypeError);
+    expect(service.decode).not.toHaveBeenCalled();
   });
 
   it('throws a TypeError for object inputs', () => {
