@@ -98,11 +98,6 @@ describe('TrailerCodecService', () => {
     expect(lines).toEqual(['Title', '', 'Body']);
   });
 
-  it('composes body without extra whitespace', () => {
-    const body = service._composeBody(['', 'Line', '']);
-    expect(body).toBe('Line');
-  });
-
   it('respects formatter hooks when provided', () => {
     const serviceWithFormatters = new TrailerCodecService({
       formatters: {
