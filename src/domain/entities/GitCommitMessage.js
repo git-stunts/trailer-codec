@@ -4,8 +4,7 @@ import ValidationError from '../errors/ValidationError.js';
 import { ZodError } from 'zod';
 import { GitTrailerSchema } from '../schemas/GitTrailerSchema.js';
 
-const defaultTitleFormatter = (value) => (value ?? '').toString().trim();
-const defaultBodyFormatter = (value) => (value ?? '').toString().trim();
+const defaultFormatter = (value) => (value ?? '').toString().trim();
 
 /**
  * Domain entity representing a structured Git commit message.
@@ -19,7 +18,7 @@ export default class GitCommitMessage {
       const data = { title, body, trailers };
       GitCommitMessageSchema.parse(data);
 
-      const { titleFormatter = defaultTitleFormatter, bodyFormatter = defaultBodyFormatter } = formatters;
+      const { titleFormatter = defaultFormatter, bodyFormatter = defaultFormatter } = formatters;
 
       this.title = titleFormatter(title);
       this.body = bodyFormatter(body);
