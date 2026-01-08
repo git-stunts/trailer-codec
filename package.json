@@ -17,7 +17,6 @@
   },
   "scripts": {
     "test": "vitest run test/unit \"$@\"",
-    "benchmark": "vitest bench test/benchmark \"$@\"",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
