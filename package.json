@@ -12,6 +12,9 @@
     "./errors": "./src/domain/errors/TrailerCodecError.js",
     "./validation-error": "./src/domain/errors/ValidationError.js"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "test": "vitest run test/unit",
     "lint": "eslint .",
@@ -21,7 +24,7 @@
   "author": "James Ross <james@flyingrobots.dev>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@git-stunts/plumbing": "file:../plumbing",
+    "@git-stunts/plumbing": "^2.7.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -36,6 +39,24 @@
     "README.md",
     "LICENSE",
     "NOTICE",
+    "SECURITY.md",
     "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/git-stunts/trailer-codec.git"
+  },
+  "homepage": "https://github.com/git-stunts/trailer-codec#readme",
+  "bugs": {
+    "url": "https://github.com/git-stunts/trailer-codec/issues"
+  },
+  "keywords": [
+    "git",
+    "commit",
+    "trailers",
+    "metadata",
+    "git-stunts",
+    "hexagonal",
+    "ddd"
   ]
 }

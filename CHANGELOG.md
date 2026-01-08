@@ -5,22 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2026-01-07
-
-### Refactor
-
-- **Hexagonal Architecture**: Complete restructuring of the library into domain entities, value objects, and services.
-- **Zod Validation**: Centralized all validation using Zod schemas for Git trailers and commit messages.
-- **Improved Parser**: Refined the logic for trailer detection to better follow Git's RFC 822-style conventions.
+## [2.0.0] - 2026-01-08
 
 ### Added
+- Hexagonal architecture refactor with pure domain layer
+- Zod-based schema validation for type safety
+- Facade pattern for simplified usage
+- DoS protection: 5MB message size limit in `decode()`
+- ReDoS protection: 100-character max length on trailer keys
+- Comprehensive JSDoc documentation
+- Security hardening: consistent regex validation between schema and service
+- Validation rules table in README
+- GitHub Actions CI workflow
+- Standard open-source files: LICENSE, NOTICE, SECURITY.md, CODE_OF_CONDUCT.md
 
-- **TrailerCodecService**: New domain service for core encoding/decoding logic.
-- **GitCommitMessage**: New domain entity representing structured commit data.
-- **GitTrailer**: New value object for normalized trailer handling.
+### Changed
+- Trailer keys normalized to lowercase for consistency
+- `GitCommitMessage` constructor accepts array of trailers
+- `TrailerCodecService.decode` now validates input size before parsing
+- Strict schema typing: replaced `z.array(z.any())` with `z.array(GitTrailerSchema)`
+- Exported `TRAILER_KEY_REGEX` constant for reuse
 
-## [1.0.0] - 2025-10-15
+### Fixed
+- Regex inconsistency between schema validation and service parsing
+- Missing null checks in facade layer
+- Unbounded input vulnerability in decode method
 
-### Added
-
-- Initial release with basic trailer support.
+### Security
+- Added input size validation to prevent memory exhaustion attacks
+- Limited trailer key length to prevent ReDoS attacks
+- Enforced strict regex patterns across validation boundaries
