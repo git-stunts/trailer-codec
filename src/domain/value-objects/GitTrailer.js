@@ -6,10 +6,10 @@ import { ZodError } from 'zod';
  * Value object representing a Git trailer (key-value pair).
  */
 export default class GitTrailer {
-  constructor(key, value) {
+  constructor(key, value, schema = GitTrailerSchema) {
     try {
       const data = { key, value };
-      GitTrailerSchema.parse(data);
+      schema.parse(data);
       this.key = key.toLowerCase();
       this.value = value.trim();
     } catch (error) {
