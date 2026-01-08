@@ -1,8 +1,8 @@
-import { TRAILER_KEY_PATTERN_STRING } from '../schemas/GitTrailerSchema.js';
+import { TRAILER_KEY_RAW_PATTERN_STRING } from '../schemas/GitTrailerSchema.js';
 import ValidationError from '../errors/ValidationError.js';
 
 export default class TrailerParser {
-  constructor({ keyPattern = TRAILER_KEY_PATTERN_STRING } = {}) {
+  constructor({ keyPattern = TRAILER_KEY_RAW_PATTERN_STRING } = {}) {
     this._keyPattern = keyPattern;
     this.lineRegex = new RegExp(`^(${keyPattern}):\\s*(.*)$`);
   }
