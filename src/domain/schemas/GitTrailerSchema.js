@@ -24,6 +24,6 @@ export function createGitTrailerSchemaBundle({ keyPattern = DEFAULT_KEY_PATTERN,
 const DEFAULT_SCHEMA_BUNDLE = createGitTrailerSchemaBundle();
 
 export const GitTrailerSchema = DEFAULT_SCHEMA_BUNDLE.schema;
-export const TRAILER_KEY_PATTERN = DEFAULT_SCHEMA_BUNDLE.keyPattern;
+export const TRAILER_KEY_PATTERN_STRING = DEFAULT_SCHEMA_BUNDLE.keyPattern;
 export const TRAILER_KEY_REGEX = DEFAULT_SCHEMA_BUNDLE.keyRegex;
 export const getDefaultTrailerSchemaBundle = () => DEFAULT_SCHEMA_BUNDLE;

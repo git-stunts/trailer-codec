@@ -5,10 +5,10 @@
 ## Custom Validation Rules
 
 ```javascript
-import { createGitTrailerSchemaBundle, TRAILER_KEY_PATTERN, TrailerCodecService, GitTrailer } from '@git-stunts/trailer-codec';
+import { createGitTrailerSchemaBundle, TRAILER_KEY_PATTERN_STRING, TrailerCodecService, GitTrailer } from '@git-stunts/trailer-codec';
 
 const customBundle = createGitTrailerSchemaBundle({
-  keyPattern: `${TRAILER_KEY_PATTERN.replace('-', '.')}\\.+`, // allow dots in keys
+  keyPattern: `${TRAILER_KEY_PATTERN_STRING.replace('-', '.')}\\.+`, // allow dots in keys
   keyMaxLength: 120,
 });
 
