@@ -47,9 +47,9 @@ npm install @git-stunts/trailer-codec
 ### Basic Encoding/Decoding
 
 ```javascript
-import TrailerCodec from '@git-stunts/trailer-codec';
+import { createDefaultTrailerCodec } from '@git-stunts/trailer-codec';
 
-const codec = new TrailerCodec();
+const codec = createDefaultTrailerCodec();
 const message = codec.encode({
   title: 'feat: add user authentication',
   body: 'Implemented OAuth2 flow with JWT tokens.',
@@ -74,8 +74,8 @@ console.log(decoded.trailers);   // { 'signed-off-by': 'James Ross', 'reviewed-b
 
 ### API Patterns
 
-- **Primary entry point**: `TrailerCodec` is the main API; create an instance and call `encode()`/`decode()` to reuse a shared service and body formatting configuration.
-- **Facade**: `TrailerCodec` keeps configuration near instantiation while still leveraging `createMessageHelpers()` under the hood.
+- **Primary entry point**: `createDefaultTrailerCodec()` returns a `TrailerCodec` wired with a fresh `TrailerCodecService`; use `.encodeMessage()`/`.decodeMessage()` to keep configuration in one place.
+- **Facade**: `TrailerCodec` keeps configuration near instantiation while still leveraging `createMessageHelpers()` under the hood (pass your own service when you need control).
 - **Advanced**: `createConfiguredCodec()` and direct `TrailerCodecService` usage let you swap schema bundles, parsers, formatters, or helper overrides when you need custom validation or formatting behavior. The standalone helpers `encodeMessage()`/`decodeMessage()` remain available as deprecated convenience wrappers.
 
 ### Breaking Changes

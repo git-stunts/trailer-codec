@@ -21,6 +21,9 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 - Returns `{ decodeMessage, encodeMessage }` bound to the injected `TrailerCodecService` instance; a new service is created when none is provided.
 - Supports `bodyFormatOptions` (forwarded to `formatBodySegment`) and is useful for advanced/test wiring.
 
+### `createDefaultTrailerCodec({ bodyFormatOptions } = {})`
+- Creates a new `TrailerCodecService`, builds a `TrailerCodec`, and returns it so you can call `encodeMessage()`/`decodeMessage()` without manually wiring services.
+
 ### `TrailerCodec`
 - Constructor opts: `{ service = new TrailerCodecService(), bodyFormatOptions }`.
 - Exposes `decode(input)` and `encode(payload)` methods that delegate to `createMessageHelpers()`.
