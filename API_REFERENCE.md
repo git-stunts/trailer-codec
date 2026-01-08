@@ -63,7 +63,7 @@ new GitCommitMessage(
   - `encode(messageEntity)` accepts either a `GitCommitMessage` instance or a plain payload object, validates it against `GitCommitMessageSchema`, and returns the canonical commit string produced by the entity.
 
 ### `TrailerParser`
-- Constructor takes `{ keyPattern = TRAILER_KEY_PATTERN }`.
+- Constructor takes `{ keyPattern = TRAILER_KEY_PATTERN_STRING }`.
 - `split(lines)` finds where the trailer block begins (walks backward, validates the blank-line separator) and returns `{ bodyLines, trailerLines }`.
 - Used internally by `TrailerCodecService` and is injectable for custom parsing strategies.
 
@@ -73,7 +73,7 @@ new GitCommitMessage(
 - Returns `{ schema, keyPattern, keyRegex }` with the schema used by `GitTrailer` and `GitCommitMessage`.
 - Default `keyPattern` is `[A-Za-z0-9_-]+` and `keyMaxLength` defaults to `100`.
 
-### `TRAILER_KEY_PATTERN` / `TRAILER_KEY_REGEX`
+### `TRAILER_KEY_PATTERN_STRING` / `TRAILER_KEY_REGEX`
 - Exported from the default schema bundle; use them to keep custom parsers aligned with validation rules.
 
 ## Errors

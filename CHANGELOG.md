@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `GitCommitMessage` constructor accepts array of trailers
 - `TrailerCodecService.decode` now validates input size before parsing
 - Strict schema typing: replaced `z.array(z.any())` with `z.array(GitTrailerSchema)`
-- Exported `TRAILER_KEY_PATTERN` and `TRAILER_KEY_REGEX` constants for reuse
+- Exported `TRAILER_KEY_PATTERN_STRING` and `TRAILER_KEY_REGEX` constants for reuse (regex is compiled from the string pattern)
 
 ### Fixed
 - Regex inconsistency between schema validation and service parsing

@@ -7,7 +7,7 @@ export { default as GitTrailer } from './src/domain/value-objects/GitTrailer.js'
 export { default as TrailerCodecService } from './src/domain/services/TrailerCodecService.js';
 export { default as TrailerCodecError } from './src/domain/errors/TrailerCodecError.js';
 export { default as ValidationError } from './src/domain/errors/ValidationError.js';
-export { createGitTrailerSchemaBundle, TRAILER_KEY_PATTERN, TRAILER_KEY_REGEX } from './src/domain/schemas/GitTrailerSchema.js';
+export { createGitTrailerSchemaBundle, TRAILER_KEY_PATTERN_STRING, TRAILER_KEY_REGEX } from './src/domain/schemas/GitTrailerSchema.js';
 export { default as TrailerParser } from './src/domain/services/TrailerParser.js';
 
 export {
