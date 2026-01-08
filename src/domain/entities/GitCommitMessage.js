@@ -6,6 +6,16 @@ import { GitTrailerSchema } from '../schemas/GitTrailerSchema.js';
 
 const defaultFormatter = (value) => (value ?? '').toString().trim();
 
+const ensureFormatterIsFunction = (name, formatter) => {
+  if (formatter !== undefined && typeof formatter !== 'function') {
+    throw new ValidationError(
+      `Formatter "${name}" must be a function`,
+      ValidationError.CODE_COMMIT_MESSAGE_INVALID,
+      { formatterName: name, formatterValue: formatter }
+    );
+  }
+};
+
 /**
  * Domain entity representing a structured Git commit message.
  */
@@ -19,6 +29,8 @@ export default class GitCommitMessage {
       GitCommitMessageSchema.parse(data);
 
       const { titleFormatter = defaultFormatter, bodyFormatter = defaultFormatter } = formatters;
+      ensureFormatterIsFunction('titleFormatter', titleFormatter);
+      ensureFormatterIsFunction('bodyFormatter', bodyFormatter);
 
       this.title = titleFormatter(title);
       this.body = bodyFormatter(body);
