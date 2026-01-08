@@ -10,7 +10,7 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 - Throws `ValidationError` for invalid titles, missing blank-line separators, oversized messages, or malformed trailers.
 
 ### `encodeMessage({ title: string, body?: string, trailers?: Record<string, string> })`
-- Builds a `GitCommitMessage` under the hood and returns the canonical string. Trailers are converted from plain objects to `GitTrailer` instances via the default factory.
+- Builds a `GitCommitMessage` under the hood and returns the canonical string. Trailers are converted from plain objects to `GitTrailer` instances via the default factory (see `GitTrailer` below).
 
 ### `formatBodySegment(body?: string, { keepTrailingNewline = false })`
 - Shared helper for `decodeMessage` to trim whitespace while optionally keeping a trailing newline when you plan to write the body back into a template.
