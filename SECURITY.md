@@ -16,7 +16,8 @@ This library treats commit messages as **untrusted input** and validates them st
 
 - **No Git Execution**: This library does not spawn Git processes
 - **No File System Access**: Pure in-memory operations only
-- **No Network Access**: No runtime network access and zero external dependencies beyond the Zod validation library
+- **No Network Access**: This library makes no runtime network calls
+- **Minimal Direct Dependencies**: Zod is the sole direct external dependency; any transitive dependencies introduced by Zod are inherited and should be audited separately
 
 ## 🐞 Reporting a Vulnerability
 
