@@ -113,13 +113,16 @@ When you need a prewired codec (custom key patterns, parser tweaks, formatter ho
 ```javascript
 import { createConfiguredCodec } from '@git-stunts/trailer-codec';
 
-const { decodeMessage } = createConfiguredCodec({
+const { decodeMessage, encodeMessage } = createConfiguredCodec({
   keyPattern: '[A-Za-z._-]+',
   keyMaxLength: 120,
-  parserOptions: { keyPattern: '[A-Za-z._-]+' },
+  parserOptions: {},
 });
 
-decodeMessage('Title\n\nCustom.Key: value');
+const payload = { title: 'feat: cli docs', trailers: { 'Custom.Key': 'value' } };
+const encoded = encodeMessage(payload);
+const decoded = decodeMessage(encoded);
+console.log(decoded.title); // 'feat: cli docs'
 ```
 
 #### Domain Entities
