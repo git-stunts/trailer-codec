@@ -80,12 +80,12 @@ new GitCommitMessage(
 ### `ValidationError`
 - Extends `TrailerCodecError` and introduces the following codes:
 
-| Code | Meaning |
-| --- | --- |
-| `TRAILER_TOO_LARGE` | Message exceeds the 5 MB guard in `MessageNormalizer`. |
-| `TRAILER_NO_SEPARATOR` | A trailer block was found without a blank line separating it from the body (see `TrailerParser`). |
-| `TRAILER_VALUE_INVALID` | A trailer value violated the `GitTrailerSchema` (e.g., contained `\n`). |
-| `TRAILER_INVALID` | Trailer key or value failed validation (`GitTrailerSchema`). |
-| `COMMIT_MESSAGE_INVALID` | The `GitCommitMessageSchema` rejected the title/body/trailers combination. |
+| Code | Thrown by | Meaning |
+| --- | --- | --- |
+| `TRAILER_TOO_LARGE` | `MessageNormalizer.guardMessageSize` (called by `TrailerCodecService.decode` and the exported `decodeMessage`) | Message exceeds the 5 MB guard in `MessageNormalizer`. |
+| `TRAILER_NO_SEPARATOR` | `TrailerParser.split` / `TrailerCodecService.decode` when the blank-line guard fails | A trailer block was found without a blank line separating it from the body (see `TrailerParser`). |
+| `TRAILER_VALUE_INVALID` | `GitTrailer` via `GitTrailerSchema.parse` when constructing trailers | A trailer value violated the `GitTrailerSchema` (e.g., contained `\n`). |
+| `TRAILER_INVALID` | `GitTrailer` via `GitTrailerSchema.parse` when constructing trailers | Trailer key or value failed validation (`GitTrailerSchema`). |
+| `COMMIT_MESSAGE_INVALID` | `GitCommitMessage` via `GitCommitMessageSchema.parse` (triggered by `TrailerCodecService.decode` or `encode`) | The `GitCommitMessageSchema` rejected the title/body/trailers combination. |
 
 The thrown `ValidationError` exposes `code` and `meta` for programmatic recovery; refer to `docs/SERVICE.md` or `README.md#validation-error-codes` for how to react in your integration.
