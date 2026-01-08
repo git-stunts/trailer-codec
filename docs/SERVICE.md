@@ -8,13 +8,15 @@
 | --- | --- | --- |
 | `schemaBundle` | `getDefaultTrailerSchemaBundle()` | Supplies `GitTrailerSchema`, `keyPattern`, and `keyRegex`. Pass a custom bundle from `createGitTrailerSchemaBundle()` to change validation rules. |
 | `trailerFactory` | `new GitTrailer(key, value, schema)` | Creates trailer value objects. Swap this out for instrumentation or a different trailer implementation. |
-| `parser` | `new TrailerParser({ keyPattern: schemaBundle.keyPattern })` | Splits body vs trailers and validates the blank-line separator. Inject a decorated parser to control detection heuristics. |
+| `parser` | `new TrailerParser({ keyPattern: schemaBundle.keyPattern })` | Splits body vs trailers, validates the blank-line separator, and exposes `lineRegex` (compiled from `schemaBundle.keyPattern`) so you can match each trailer line consistently. Inject a decorated parser to control detection heuristics and refer to [`docs/PARSER.md`](docs/PARSER.md) for parser internals. |
 | `messageNormalizer` | `new MessageNormalizer()` | Normalizes line endings (`
 ` → `
 `) and guards against messages > 5 MB (see `VALIDATION_ERROR`). Override to adjust the max size or normalization logic. |
 | `titleExtractor` | `new TitleExtractor()` | Grabs the first line as the title and skips the optional blank line before the body. Replace to support multi-line titles or custom separators. |
 | `bodyComposer` | `new BodyComposer()` | Trims leading/trailing blank lines from the body while preserving user whitespace inside. Swap it when you want to preserve blank lines that occur at the edges. |
 | `formatters` | `{}` | Accepts `{ titleFormatter, bodyFormatter }` functions applied before serialization. Use them to normalize casing, apply templates, or inject defaults before `encode()`. |
+
+TrailerParser compiles the `schemaBundle.keyPattern` into `parser.lineRegex` during construction, so each trailer line is matched with the same RegExp used for validation; refer to [`docs/PARSER.md`](docs/PARSER.md) or `TrailerParser` constructor docs for more detail when you override this behavior.
 
 ## Decode pipeline (see `decode()` in `src/domain/services/TrailerCodecService.js`)
 
