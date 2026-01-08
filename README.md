@@ -71,7 +71,13 @@ console.log(decoded.title);      // "feat: add user authentication"
 console.log(decoded.trailers);   // { 'signed-off-by': 'James Ross', 'reviewed-by': 'Alice Smith' }
 ```
 
-### Body Formatting
+### API Patterns
+
+- **Primary entry points**: `encodeMessage()` and `decodeMessage()` are the recommended helpers for most integrations; they share the same `TrailerCodecService` instance and return plain objects so you can stay focused on payloads.
+- **Facade**: `TrailerCodec` wraps the helpers with class-based `encode()`/`decode()` methods when you want configuration close to instantiation and a dedicated instance for helper state.
+- **Advanced**: `createConfiguredCodec()` and direct `TrailerCodecService` usage let you swap schema bundles, parsers, formatters, or helper overrides when you need custom validation or formatting behavior.
+
+### Body Formatting & Facade
 
 `decodeMessage` now trims the decoded body by default, returning the content exactly as stored; no extra newline is appended automatically. If you still need the trailing newline (for example when writing the decoded body back into a commit template), instantiate the helpers or facade with `bodyFormatOptions: { keepTrailingNewline: true }`:
 
@@ -85,7 +91,9 @@ console.log(payload.body); // 'Body\n'
 
 You can also call the exported `formatBodySegment(body, { keepTrailingNewline: true })` helper directly when you need the formatting logic elsewhere.
 
-### Configured Codec Builder
+### Advanced
+
+#### Configured Codec Builder
 
 When you need a prewired codec (custom key patterns, parser tweaks, formatter hooks), use `createConfiguredCodec({ keyPattern, keyMaxLength, parserOptions })`. It builds a schema bundle, parser, and service for you, and returns helpers so you can immediately call `decodeMessage`/`encodeMessage`:
 
@@ -101,7 +109,7 @@ const { decodeMessage } = createConfiguredCodec({
 decodeMessage('Title\n\nCustom.Key: value');
 ```
 
-### Using Domain Entities
+#### Domain Entities
 
 ```javascript
 import { GitCommitMessage } from '@git-stunts/trailer-codec';
@@ -118,17 +126,7 @@ const msg = new GitCommitMessage({
 console.log(msg.toString());
 ```
 
-### Helper Facade (optional)
-
-```javascript
-import TrailerCodec from '@git-stunts/trailer-codec';
-
-const codec = new TrailerCodec();
-const roundTrip = codec.decode(codec.encode({ title: 'sync', trailers: [{ key: 'Status', value: 'done' }] }));
-console.log(roundTrip.trailers['status']); // "done"
-```
-
-### Public API Helpers & Configuration
+#### Public API Helpers & Configuration
 
 #### Helpers
 
