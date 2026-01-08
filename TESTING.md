@@ -11,7 +11,7 @@ This file describes how to exercise the validation, lint, and format tooling tha
 
 | Script | Description |
 | --- | --- |
-| `npm test` | Runs **Vitest** over `test/unit`. Pass additional arguments (e.g., `npm test -- test/unit/domain/services/TrailerCodecService.test.js`) to limit which files execute. Vitest works with `--runInBand`/`--no-color` if you need to debug output. |
+| `npm test` | Runs **Vitest** over `test/unit`. Pass additional arguments (e.g., `npm test -- test/unit/domain/services/TrailerCodecService.test.js`) to limit which files execute, and append `--runInBand` or `--no-color` to `npm test --` for sequential execution or colorless logs (e.g., `npm test -- --runInBand` or `npm test -- --no-color`). |
 | `npm run lint` | Executes **ESLint** across the entire repository. Fix any reported issues locally. |
 | `npm run format` | Runs **Prettier** with the configured settings to keep formatting consistent. Commit the formatted files or run with `--check` before publishing documentation. |
 
