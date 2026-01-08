@@ -13,13 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added schema factory (`createGitTrailerSchemaBundle`) so downstream code can override trailer validation rules.
 - Introduced `TrailerParser` with its own tests so parsing can be swapped or reused without subclassing the service.
 - Expanded the README with developer/testing guidance, public helper details, and links to `TESTING.md`, `API_REFERENCE.md`, and `docs/SERVICE.md`, which now document the helper contract, API surface, and service wiring.
+- Added README/MIGRATION documentation for the `decodeMessage()` newline trimming change (v0.2.0+) and mapped the migration path plus helper usage for `TrailerCodec` bodyFormatOptions and `formatBodySegment`.
 
 ### Changed
 - Trimmed commit bodies without double allocation and enforced a blank line before trailers.
 - Tightened trailer validation (newline-free values) and exposed the schema bundle to service/fixtures, pairing with the new helper wrappers.
 - Removed the docker guard dependency so tests run locally without the external guard enforcement.
 - Upgraded `zod` dependency to the latest 3.25.x release.
-- Added ValidationError codes (TRAILER_TOO_LARGE, TRAILER_NO_SEPARATOR, TRAILER_VALUE_INVALID, TRAILER_INVALID, COMMIT_MESSAGE_INVALID) and updated the facade so `decode()` accepts raw strings while logging a deprecation warning when the old object form is used.
+ - Added ValidationError codes (TRAILER_TOO_LARGE, TRAILER_NO_SEPARATOR, TRAILER_VALUE_INVALID, TRAILER_INVALID, COMMIT_MESSAGE_INVALID) for granular error diagnostics.
+ - Updated `decode()` to accept raw strings with a deprecation warning when the legacy object form is used.
 
 
 ## [2.0.0] - 2026-01-08

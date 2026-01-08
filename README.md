@@ -77,6 +77,12 @@ console.log(decoded.trailers);   // { 'signed-off-by': 'James Ross', 'reviewed-b
 - **Facade**: `TrailerCodec` wraps the helpers with class-based `encode()`/`decode()` methods when you want configuration close to instantiation and a dedicated instance for helper state.
 - **Advanced**: `createConfiguredCodec()` and direct `TrailerCodecService` usage let you swap schema bundles, parsers, formatters, or helper overrides when you need custom validation or formatting behavior.
 
+### Breaking Changes
+
+- `decodeMessage()` now trims trailing newlines in the version `v0.2.0+` runtime, so plain string inputs will no longer include a final `\n` unless you opt into it.
+- To preserve the trailing newline you rely on (e.g., when round-tripping commit templates), either instantiate `TrailerCodec` with `bodyFormatOptions: { keepTrailingNewline: true }`, call `formatBodySegment(body, { keepTrailingNewline: true })` yourself, or pass the same option through `createConfiguredCodec`.
+- See [`docs/MIGRATION.md#v020`](docs/MIGRATION.md#v020) for the full migration checklist and decoding behavior rationale.
+
 ### Body Formatting & Facade
 
 `decodeMessage` now trims the decoded body by default, returning the content exactly as stored; no extra newline is appended automatically. If you still need the trailing newline (for example when writing the decoded body back into a commit template), instantiate the helpers or facade with `bodyFormatOptions: { keepTrailingNewline: true }`:
@@ -90,6 +96,13 @@ console.log(payload.body); // 'Body\n'
 ```
 
 You can also call the exported `formatBodySegment(body, { keepTrailingNewline: true })` helper directly when you need the formatting logic elsewhere.
+
+```javascript
+import { formatBodySegment } from '@git-stunts/trailer-codec';
+
+const trimmed = formatBodySegment('Body\n', { keepTrailingNewline: true });
+console.log(trimmed); // 'Body\n'
+```
 
 ### Advanced
 
