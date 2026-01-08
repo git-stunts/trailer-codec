@@ -1,5 +1,4 @@
 import TrailerCodecService from '../domain/services/TrailerCodecService.js';
-const defaultService = new TrailerCodecService();
 
 function normalizeInput(input) {
   if (typeof input === 'string') {
@@ -34,7 +33,7 @@ export function formatBodySegment(body, { keepTrailingNewline = false } = {}) {
   return keepTrailingNewline ? `${trimmed}\n` : trimmed;
 }
 
-export function createMessageHelpers({ service = defaultService, bodyFormatOptions } = {}) {
+export function createMessageHelpers({ service = new TrailerCodecService(), bodyFormatOptions } = {}) {
   function decodeMessage(input) {
     const message = normalizeInput(input);
     const entity = service.decode(message);
