@@ -1,5 +1,7 @@
 # Integration Guide
 
+`decodeMessage()` returns `{ title: string, body: string, trailers: Record<string,string> }` (see `API_REFERENCE.md#encoding--decoding-helpers`). `.title` is the first commit line, `.body` trims leading/trailing blanks to provide the content between title and trailers, and `.trailers` is an object of normalized lowercase keys (empty when no trailers exist). `formatBodySegment(segment)` expects a string and returns the trimmed segment, optionally keeping a trailing newline when `keepTrailingNewline: true`. `decodeMessage()` throws `ValidationError` on malformed input instead of returning an error object, so callers should wrap calls in try/catch if they want to handle validation failures gracefully.
+
 Blend `@git-stunts/trailer-codec` with Git history and tooling to treat commit trailers as structured metadata.
 
 ## Decode trailers from `git log --format=%B`
