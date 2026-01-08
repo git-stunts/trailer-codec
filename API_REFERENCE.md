@@ -29,8 +29,13 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 
 ## Domain model exports
 
-### `GitCommitMessage`
-- Constructor signature: `(payload: { title: string, body?: string, trailers?: GitTrailerInput[] }, { trailerSchema, formatters } = {})`.
+-### `GitCommitMessage`
+```ts
+new GitCommitMessage(
+  payload: { title: string; body?: string; trailers?: GitTrailerInput[] },
+  options?: { trailerSchema?: ReturnType<typeof getDefaultTrailerSchemaBundle>['schema']; formatters?: { titleFormatter?: (value: string) => string; bodyFormatter?: (value: string) => string } }
+);
+```
 - Validates via `GitCommitMessageSchema`, normalizes title/body with optional formatters, and converts `trailers` to `GitTrailer` instances.
 - `toString()` returns a Git-style commit string (title, optional body, blank line, trailers).
 
