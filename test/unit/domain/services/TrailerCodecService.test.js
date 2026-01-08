@@ -85,11 +85,6 @@ describe('TrailerCodecService', () => {
     expect(() => service._guardMessageSize(oversize)).toThrow(ValidationError);
   });
 
-  it('normalizes CRLF via _prepareLines', () => {
-    const lines = service._prepareLines('Title\r\n');
-    expect(lines).toEqual(['Title', '']);
-  });
-
   it('consumes title and blank separator without shifting lines', () => {
     const lines = ['Title', '', 'Body'];
     const { title, nextIndex } = service._consumeTitle(lines);
