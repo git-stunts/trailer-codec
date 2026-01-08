@@ -5,19 +5,21 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 ## Encoding & decoding helpers
 
 ### `decodeMessage(message: string)`
+- Deprecated convenience wrapper around `new TrailerCodec().decode(message)`.
 - Input: a raw commit payload (title, optional body, trailers) as a string.
 - Output: `{ title: string, body: string, trailers: Record<string, string> }` where `body` is trimmed via `formatBodySegment` (see below) and trailer keys are normalized to lowercase.
 - Throws `ValidationError` for invalid titles, missing blank-line separators, oversized messages, or malformed trailers.
 
 ### `encodeMessage({ title: string, body?: string, trailers?: Record<string, string> })`
+-- Deprecated convenience wrapper around `new TrailerCodec().encode(payload)`.
 - Builds a `GitCommitMessage` under the hood and returns the canonical string. Trailers are converted from plain objects to `GitTrailer` instances via the default factory (see `GitTrailer` below).
 
 ### `formatBodySegment(body?: string, { keepTrailingNewline = false })`
 - Shared helper for `decodeMessage` to trim whitespace while optionally keeping a trailing newline when you plan to write the body back into a template.
 
-### `createMessageHelpers({ service = defaultService, bodyFormatOptions } = {})`
-- Returns `{ decodeMessage, encodeMessage }` bound to the provided `TrailerCodecService` instance.
-- Supports `bodyFormatOptions` (forwarded to `formatBodySegment`) and is useful when wiring codecs into scripts without instantiating `TrailerCodec`.
+### `createMessageHelpers({ service, bodyFormatOptions } = {})`
+- Returns `{ decodeMessage, encodeMessage }` bound to the injected `TrailerCodecService` instance; a new service is created when none is provided.
+- Supports `bodyFormatOptions` (forwarded to `formatBodySegment`) and is useful for advanced/test wiring.
 
 ### `TrailerCodec`
 - Constructor opts: `{ service = new TrailerCodecService(), bodyFormatOptions }`.

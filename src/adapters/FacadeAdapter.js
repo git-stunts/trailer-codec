@@ -33,6 +33,9 @@ export function formatBodySegment(body, { keepTrailingNewline = false } = {}) {
   return keepTrailingNewline ? `${trimmed}\n` : trimmed;
 }
 
+/**
+ * Advanced helper factory (useful for tests or when you need to control the service instance).
+ */
 export function createMessageHelpers({ service = new TrailerCodecService(), bodyFormatOptions } = {}) {
   function decodeMessage(input) {
     const message = normalizeInput(input);
@@ -52,9 +55,23 @@ export function createMessageHelpers({ service = new TrailerCodecService(), body
   return { decodeMessage, encodeMessage };
 }
 
-const helpers = createMessageHelpers();
-export const { decodeMessage, encodeMessage } = helpers;
+/**
+ * @deprecated Use `TrailerCodec` instances for most code paths.
+ */
+export function decodeMessage(input, bodyFormatOptions) {
+  return new TrailerCodec({ bodyFormatOptions }).decode(input);
+}
 
+/**
+ * @deprecated Use `TrailerCodec` instances for most code paths.
+ */
+export function encodeMessage(payload, bodyFormatOptions) {
+  return new TrailerCodec({ bodyFormatOptions }).encode(payload);
+}
+
+/**
+ * TrailerCodec is the primary public API; instantiate it to share configuration or a service instance.
+ */
 export default class TrailerCodec {
   constructor({ service = new TrailerCodecService(), bodyFormatOptions } = {}) {
     this.helpers = createMessageHelpers({ service, bodyFormatOptions });
