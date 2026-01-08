@@ -10,7 +10,17 @@ function normalizeInput(input) {
 }
 
 function normalizeTrailers(entity) {
+  if (!entity || !Array.isArray(entity.trailers)) {
+    throw new TypeError('Invalid entity: trailers array is required');
+  }
+
   return entity.trailers.reduce((acc, trailer) => {
+    if (!trailer || typeof trailer.key !== 'string' || trailer.key.trim() === '') {
+      throw new TypeError('Invalid trailer: non-empty string key is required');
+    }
+    if (acc[trailer.key] !== undefined) {
+      throw new Error(`Duplicate trailer key detected: "${trailer.key}"`);
+    }
     acc[trailer.key] = trailer.value;
     return acc;
   }, {});
