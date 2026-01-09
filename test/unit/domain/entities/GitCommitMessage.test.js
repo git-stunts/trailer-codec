@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import GitCommitMessage from '../../../../src/domain/entities/GitCommitMessage.js';
 import GitTrailer from '../../../../src/domain/value-objects/GitTrailer.js';
-import ValidationError from '../../../../src/domain/errors/ValidationError.js';
+import CommitMessageInvalidError from '../../../../src/domain/errors/CommitMessageInvalidError.js';
 
 describe('GitCommitMessage', () => {
   it('creates a valid commit message', () => {
@@ -23,13 +23,13 @@ describe('GitCommitMessage', () => {
     expect(msg.trailers[0]).toBe(trailer);
   });
 
-  it('throws ValidationError on missing title', () => {
+  it('throws on missing title', () => {
     // @ts-ignore
-    expect(() => new GitCommitMessage({ body: 'body' })).toThrow(ValidationError);
+    expect(() => new GitCommitMessage({ body: 'body' })).toThrow(CommitMessageInvalidError);
   });
 
-  it('throws ValidationError on empty title', () => {
-    expect(() => new GitCommitMessage({ title: '' })).toThrow(ValidationError);
+  it('throws on empty title', () => {
+    expect(() => new GitCommitMessage({ title: '' })).toThrow(CommitMessageInvalidError);
   });
 
   it('formats toString correctly with body and trailers', () => {

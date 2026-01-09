@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import TrailerCodecService from '../../../../src/domain/services/TrailerCodecService.js';
 import GitCommitMessage from '../../../../src/domain/entities/GitCommitMessage.js';
-import ValidationError from '../../../../src/domain/errors/ValidationError.js';
+import TrailerNoSeparatorError from '../../../../src/domain/errors/TrailerNoSeparatorError.js';
+import TrailerValueInvalidError from '../../../../src/domain/errors/TrailerValueInvalidError.js';
+import TrailerTooLargeError from '../../../../src/domain/errors/TrailerTooLargeError.js';
 
 describe('TrailerCodecService', () => {
   const service = new TrailerCodecService();
@@ -66,8 +68,7 @@ describe('TrailerCodecService', () => {
     try {
       service.decode(raw);
     } catch (error) {
-      expect(error).toBeInstanceOf(ValidationError);
-      expect(error.code).toBe(ValidationError.CODE_TRAILER_NO_SEPARATOR);
+      expect(error).toBeInstanceOf(TrailerNoSeparatorError);
     }
   });
 
@@ -75,14 +76,13 @@ describe('TrailerCodecService', () => {
     try {
       service._buildTrailers(['Key: Value\nInjected']);
     } catch (error) {
-      expect(error).toBeInstanceOf(ValidationError);
-      expect(error.code).toBe(ValidationError.CODE_TRAILER_VALUE_INVALID);
+      expect(error).toBeInstanceOf(TrailerValueInvalidError);
     }
   });
 
   it('guards message size in helper', () => {
     const oversize = 'a'.repeat(5 * 1024 * 1024 + 1);
-    expect(() => service._guardMessageSize(oversize)).toThrow(ValidationError);
+    expect(() => service._guardMessageSize(oversize)).toThrow(TrailerTooLargeError);
   });
 
   it('consumes title and blank separator without shifting lines', () => {
@@ -102,7 +102,7 @@ describe('TrailerCodecService', () => {
     });
     const raw = 'Title \n\n Body ';
     const msg = serviceWithFormatters.decode(raw);
-    expect(msg.title).toBe('(Title )');
+    expect(msg.title).toBe('(Title)');
     expect(msg.body).toBe('[[ Body ]]');
   });
 });

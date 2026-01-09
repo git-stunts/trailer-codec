@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import GitTrailer from '../../../../src/domain/value-objects/GitTrailer.js';
-import ValidationError from '../../../../src/domain/errors/ValidationError.js';
+import TrailerInvalidError from '../../../../src/domain/errors/TrailerInvalidError.js';
+import TrailerValueInvalidError from '../../../../src/domain/errors/TrailerValueInvalidError.js';
 
 describe('GitTrailer', () => {
   it('creates a valid trailer', () => {
@@ -20,44 +21,43 @@ describe('GitTrailer', () => {
   });
 
   it('throws error for invalid key characters', () => {
-    expect(() => new GitTrailer('Invalid Key!', 'value')).toThrow(ValidationError);
+    expect(() => new GitTrailer('Invalid Key!', 'value')).toThrow(TrailerInvalidError);
   });
 
   it('throws error for empty key', () => {
-    expect(() => new GitTrailer('', 'value')).toThrow(ValidationError);
+    expect(() => new GitTrailer('', 'value')).toThrow(TrailerInvalidError);
   });
 
   it('throws error for empty value', () => {
-    expect(() => new GitTrailer('key', '')).toThrow(ValidationError); // Assuming schema requires min(1)
+    expect(() => new GitTrailer('key', '')).toThrow(TrailerValueInvalidError); // Assuming schema requires min(1)
   });
 
-  it('exposes CODE_TRAILER_VALUE_INVALID when value includes newline', () => {
+  it('throws TrailerValueInvalidError when value includes newline', () => {
     const attempt = () => {
       try {
         new GitTrailer('Key', 'Line\nBreak');
       } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect(error.code).toBe(ValidationError.CODE_TRAILER_VALUE_INVALID);
+        expect(error).toBeInstanceOf(TrailerValueInvalidError);
         throw error;
       }
     };
 
-    expect(attempt).toThrow(ValidationError);
+    expect(attempt).toThrow(TrailerValueInvalidError);
   });
 
-  it('includes documentation link in ValidationError metadata', () => {
+  it('includes documentation link in TrailerValueInvalidError metadata', () => {
     const attempt = () => {
       try {
         new GitTrailer('Key', '');
       } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
+        expect(error).toBeInstanceOf(TrailerValueInvalidError);
         expect(error.meta.docs).toBe('docs/ADVANCED.md#custom-validation-rules');
         expect(/invalid trailer/i.test(error.message)).toBe(true);
         throw error;
       }
     };
 
-    expect(attempt).toThrow(ValidationError);
+    expect(attempt).toThrow(TrailerValueInvalidError);
   });
 
   it('converts to string correctly', () => {

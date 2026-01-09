@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tightened trailer validation (newline-free values) and exposed the schema bundle to service/fixtures, pairing with the new helper wrappers.
 - Removed the docker guard dependency so tests run locally without the external guard enforcement.
 - Upgraded `zod` dependency to the latest 3.25.x release.
- - Added ValidationError codes (TRAILER_TOO_LARGE, TRAILER_NO_SEPARATOR, TRAILER_VALUE_INVALID, TRAILER_INVALID, COMMIT_MESSAGE_INVALID) for granular error diagnostics.
+- Added dedicated validation error classes (`TrailerTooLargeError`, `TrailerNoSeparatorError`, `TrailerValueInvalidError`, `TrailerInvalidError`, `CommitMessageInvalidError`) for granular diagnostics.
  - Updated `decode()` to accept raw strings with a deprecation warning when the legacy object form is used.
 
 

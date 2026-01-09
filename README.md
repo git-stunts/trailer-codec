@@ -149,36 +149,36 @@ console.log(msg.toString());
 - `createMessageHelpers({ service, bodyFormatOptions })` returns `{ decodeMessage, encodeMessage }` bound to the provided `TrailerCodecService`; pass `bodyFormatOptions` to control whether decoded bodies keep their trailing newline.
 - `TrailerCodec` wraps `createMessageHelpers()` so you can instantiate a codec class with custom `service` or `bodyFormatOptions` and still leverage the helper contract via `encode()`/`decode()`.
 - `createConfiguredCodec({ keyPattern, keyMaxLength, parserOptions, formatters, bodyFormatOptions })` wires together `createGitTrailerSchemaBundle`, `TrailerParser`, `TrailerCodecService`, and the helper pair, letting you configure key validation, parser heuristics, formatting hooks, and body formatting in a single call.
-- `TrailerCodecService` exposes the schema bundle, parser, trailer factory, formatter hooks, and helper classes (`MessageNormalizer`, `TitleExtractor`, `BodyComposer`); see `docs/SERVICE.md` for a deeper explanation of how to customize each stage without touching the core service.
+- `TrailerCodecService` exposes the schema bundle, parser, trailer factory, formatter hooks, and helper utilities (`MessageNormalizer`, `extractTitle`, `composeBody`); see `docs/SERVICE.md` for a deeper explanation of how to customize each stage without touching the core service.
 
 ## ✅ Validation Rules
 
-Trailer codec enforces strict validation:
+Trailer codec enforces strict validation via the concrete subclasses of `TrailerCodecError`:
 
-| Rule | Constraint | Error Type |
-|------|-----------|------------|
-| **Message Size** | ≤ 5MB | `ValidationError` |
-| **Title** | Must be non-empty string | `ValidationError` |
-| **Trailer Key** | Alphanumeric, hyphens, underscores only (`/^[A-Za-z0-9_-]+$/`) | `ValidationError` |
-| **Key Length** | ≤ 100 characters (prevents ReDoS) | `ValidationError` |
-| **Trailer Value** | Must be non-empty string | `ValidationError` |
+| Rule | Constraint | Thrown Error |
+|------|------------|--------------|
+| **Message Size** | ≤ 5MB | `TrailerTooLargeError` |
+| **Title** | Must be a non-empty string | `CommitMessageInvalidError` (during entity construction) |
+| **Trailer Key** | Alphanumeric, hyphens, underscores only (`/^[A-Za-z0-9_-]+$/`) and ≤ 100 characters (prevents ReDoS) | `TrailerInvalidError` |
+| **Trailer Value** | Cannot contain carriage returns or line feeds and must not be empty | `TrailerValueInvalidError` |
 
 **Key Normalization:** All trailer keys are automatically normalized to lowercase (e.g., `Signed-Off-By` → `signed-off-by`).
 
-**Blank-Line Guard:** Trailers must be separated from the body by a blank line; committing without that empty line results in a `ValidationError`.
+**Blank-Line Guard:** Trailers must be separated from the body by a blank line; omitting the separator throws `TrailerNoSeparatorError`.
 
-**Trailer Line Limits:** Trailer values cannot contain carriage returns or line feeds.
+### Validation Errors
 
-### Validation Error Codes
+When `TrailerCodecService` or the exported helpers throw, they surface one of the following classes so you can recover with `instanceof` checks:
 
-| Code | Trigger | Suggested Fix |
+| Error | Trigger | Suggested Fix |
 | --- | --- | --- |
-| `TRAILER_TOO_LARGE` | Message exceeds 5MB | Split the commit or remove content until the payload fits |
-| `TRAILER_NO_SEPARATOR` | Missing blank line before trailers | Insert an empty line between the body and the trailer metadata |
-| `TRAILER_VALUE_INVALID` | Trailer value contains newline characters | Remove newlines from the value before encoding |
-| `TRAILER_INVALID` | Trailer key or value fails schema validation | Adjust the key/value or pass a custom schema bundle via `TrailerCodecService` |
+| `TrailerTooLargeError` | Message exceeds 5MB while `MessageNormalizer.guardMessageSize()` runs | Split the commit or remove content until the payload fits. |
+| `TrailerNoSeparatorError` | Missing blank line before trailers when `TrailerParser.split()` runs | Insert the required empty line between body and trailers. |
+| `TrailerValueInvalidError` | Trailer value includes newline characters or fails the schema value rules | Remove or escape newline characters before encoding. |
+| `TrailerInvalidError` | Trailer key/value pair fails the schema validation (`GitTrailerSchema`) | Adjust the key/value or supply a custom schema bundle via `TrailerCodecService`. |
+| `CommitMessageInvalidError` | `GitCommitMessageSchema` rejects the full payload (title/body/trailers) | Fix the invalid field or pass a conforming payload; use formatters if needed. |
 
-Each code appears on the thrown `ValidationError` (`src/domain/errors/ValidationError.js`), so you can read `error.code` and `error.meta` to respond. See `API_REFERENCE.md#validation-errors` for the class signature and recommended recovery guidance for each code.
+All of the above inherit from `TrailerCodecError` (`src/domain/errors/TrailerCodecError.js`) and expose `meta` for diagnostics; prefer checking the specific class instead of inspecting `code`.
 
 ## 🛡️ Security
 
@@ -192,15 +192,13 @@ See [SECURITY.md](SECURITY.md) for details.
 
 ## 📚 Additional Documentation
 
-- [`docs/ADVANCED.md`](docs/ADVANCED.md) — Custom schema injection, validation overrides, and advanced integration patterns
-- [`docs/PARSER.md`](docs/PARSER.md) — Step-by-step explanation of the backward-walk parser
-- [`docs/MIGRATION.md`](docs/MIGRATION.md) — Notes for upgrading from earlier versions
-- [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — Micro-benchmark insights
-- [`docs/RELEASE.md`](docs/RELEASE.md) — Checklist for version bumps and npm publishing
-- [`docs/INTEGRATION.md`](docs/INTEGRATION.md) — Git log scripting, streaming decoder, and Git-CMS filtering recipes
-- [`docs/SERVICE.md`](docs/SERVICE.md) — How `TrailerCodecService` wires schema, parser, and formatter helpers for customization
-- [`API_REFERENCE.md`](API_REFERENCE.md) — Complete catalog of the public exports, their inputs/outputs, and notable knobs
-- [`TESTING.md`](TESTING.md) — How to run/extend the Vitest, lint, and format scripts plus contributor tips
+- [`docs/ADVANCED.md`](docs/ADVANCED.md) — Custom schema injection, validation overrides, and advanced integration patterns.
+- [`docs/PARSER.md`](docs/PARSER.md) — Step-by-step explanation of the backward-walk parser.
+- [`docs/INTEGRATION.md`](docs/INTEGRATION.md) — Git log scripting, streaming decoder, and Git-CMS filtering recipes.
+- [`docs/SERVICE.md`](docs/SERVICE.md) — How `TrailerCodecService` wires schema, parser, and formatter helpers for customization.
+- [`API_REFERENCE.md`](API_REFERENCE.md) — Complete catalog of the public exports, their inputs/outputs, and notable knobs.
+- [`TESTING.md`](TESTING.md) — How to run/extend the Vitest, lint, and format scripts plus contributor tips.
+- **Git hooks**: Run `npm run setuphooks` once per clone to point `core.hooksPath` at `scripts/`. The hook now runs just `npm run lint` and `npm run format` before each commit.
 
 ## 📄 License
 

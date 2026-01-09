@@ -8,7 +8,7 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 - Deprecated convenience wrapper around `new TrailerCodec().decode(message)`.
 - Input: a raw commit payload (title, optional body, trailers) as a string.
 - Output: `{ title: string, body: string, trailers: Record<string, string> }` where `body` is trimmed via `formatBodySegment` (see below) and trailer keys are normalized to lowercase.
-- Throws `ValidationError` for invalid titles, missing blank-line separators, oversized messages, or malformed trailers.
+- Throws `TrailerCodecError` subclasses (e.g., `TrailerNoSeparatorError`, `TrailerValueInvalidError`, or `CommitMessageInvalidError`) for invalid titles, missing blank lines, oversized messages, or malformed trailers.
 
 ### `encodeMessage({ title: string, body?: string, trailers?: Record<string, string> })`
 -- Deprecated convenience wrapper around `new TrailerCodec().encode(payload)`.
@@ -47,7 +47,7 @@ new GitCommitMessage(
 ### `GitTrailer`
 - Accepts `(key: string, value: string, schema = GitTrailerSchema)`.
 - Validates using `GitTrailerSchema` and normalizes the key to lowercase and the value to a trimmed string.
-- Throws `ValidationError` with codes `TRAILER_INVALID` or `TRAILER_VALUE_INVALID` if the provided data fails schema validation.
+- Throws `TrailerInvalidError` or `TrailerValueInvalidError` when the provided key/value fail schema validation.
 
 ## Services & parsers
 
@@ -79,18 +79,15 @@ new GitCommitMessage(
 ## Errors
 
 ### `TrailerCodecError`
-- Base error type used by `ValidationError`.
-- Signature: `(message: string, code: string, meta: Record<string, unknown> = {})`.
+- Base error type used throughout the codec (`index.js` re-exports it).
+- Signature: `(message: string, meta: Record<string, unknown> = {})`.
 
-### `ValidationError`
-- Extends `TrailerCodecError` and introduces the following codes:
+### Validation error subclasses
 
-| Code | Thrown by | Meaning |
+| Error | Thrown by | Meaning |
 | --- | --- | --- |
-| `TRAILER_TOO_LARGE` | `MessageNormalizer.guardMessageSize` (called by `TrailerCodecService.decode` and the exported `decodeMessage`) | Message exceeds the 5 MB guard in `MessageNormalizer`. |
-| `TRAILER_NO_SEPARATOR` | `TrailerParser.split` / `TrailerCodecService.decode` when the blank-line guard fails | A trailer block was found without a blank line separating it from the body (see `TrailerParser`). |
-| `TRAILER_VALUE_INVALID` | `GitTrailer` via `GitTrailerSchema.parse` when constructing trailers | A trailer value violated the `GitTrailerSchema` (e.g., contained `\n`). |
-| `TRAILER_INVALID` | `GitTrailer` via `GitTrailerSchema.parse` when constructing trailers | Trailer key or value failed validation (`GitTrailerSchema`). |
-| `COMMIT_MESSAGE_INVALID` | `GitCommitMessage` via `GitCommitMessageSchema.parse` (triggered by `TrailerCodecService.decode` or `encode`) | The `GitCommitMessageSchema` rejected the title/body/trailers combination. |
-
-The thrown `ValidationError` exposes `code` and `meta` for programmatic recovery; refer to `docs/SERVICE.md` or `README.md#validation-error-codes` for how to react in your integration.
+| `TrailerTooLargeError` | `MessageNormalizer.guardMessageSize` (called by `TrailerCodecService.decode` and the exported `decodeMessage`) | Message exceeds the 5 MB guard in `MessageNormalizer`. |
+| `TrailerNoSeparatorError` | `TrailerParser.split` / `TrailerCodecService.decode` when the blank-line guard fails | A trailer block was found without a blank line separating it from the body (see `TrailerParser`). |
+| `TrailerValueInvalidError` | `GitTrailer` via `GitTrailerSchema.parse` when constructing trailers | A trailer value violated the `GitTrailerSchema` (e.g., contained `\n`). |
+| `TrailerInvalidError` | `GitTrailer` via `GitTrailerSchema.parse` when constructing trailers | Trailer key or value failed validation (`GitTrailerSchema`). |
+| `CommitMessageInvalidError` | `GitCommitMessage` via `GitCommitMessageSchema.parse` (triggered by `TrailerCodecService.decode` or `encode`) | The `GitCommitMessageSchema` rejected the title/body/trailers combination. |

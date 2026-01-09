@@ -1,13 +1,21 @@
 import { GitTrailerSchema } from '../schemas/GitTrailerSchema.js';
-import ValidationError from '../errors/ValidationError.js';
+import TrailerInvalidError from '../errors/TrailerInvalidError.js';
+import TrailerValueInvalidError from '../errors/TrailerValueInvalidError.js';
 import { ZodError } from 'zod';
 const DOCS_CUSTOM_VALIDATION = 'docs/ADVANCED.md#custom-validation-rules';
 
 /**
  * Value object representing a Git trailer (key-value pair).
+ * Keys are normalized to lowercase and values trimmed before serialization.
  */
 export default class GitTrailer {
   constructor(key, value, schema = GitTrailerSchema) {
+    /**
+     * @param {string} key - Raw trailer key (e.g., Accepted).
+     * @param {string} value - Raw trailer value.
+     * @param {import('zod').ZodSchema} [schema=GitTrailerSchema] - Schema validating the pair.
+     * @throws {TrailerInvalidError|TrailerValueInvalidError} when the schema rejects the pair.
+     */
     const actualSchema = schema ?? GitTrailerSchema;
     if (!actualSchema || typeof actualSchema.parse !== 'function') {
       throw new TypeError('Invalid schema: missing parse method');
@@ -24,17 +32,14 @@ export default class GitTrailer {
     } catch (error) {
       if (error instanceof ZodError) {
         const valueIssue = error.issues.some((issue) => issue.path.includes('value'));
-        const code = valueIssue
-          ? ValidationError.CODE_TRAILER_VALUE_INVALID
-          : ValidationError.CODE_TRAILER_INVALID;
+        const ErrorClass = valueIssue ? TrailerValueInvalidError : TrailerInvalidError;
         const rawValue = String(value ?? '');
         const truncatedValue =
           rawValue.length > 120 ? `${rawValue.slice(0, 120)}…[truncated]` : rawValue;
-        throw new ValidationError(
+        throw new ErrorClass(
           `Invalid trailer '${normalizedKey.toLowerCase()}' (value='${truncatedValue}'): ${error.issues
-            .map((i) => i.message)
+            .map((issue) => issue.message)
             .join(', ')}. See ${DOCS_CUSTOM_VALIDATION}.`,
-          code,
           {
             issues: error.issues,
             key: normalizedKey.toLowerCase(),
