@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import TrailerParser from '../../../../src/domain/services/TrailerParser.js';
-import ValidationError from '../../../../src/domain/errors/ValidationError.js';
+import TrailerNoSeparatorError from '../../../../src/domain/errors/TrailerNoSeparatorError.js';
 
 describe('TrailerParser', () => {
   const parser = new TrailerParser();
@@ -14,7 +14,7 @@ describe('TrailerParser', () => {
 
   it('throws when trailers are not separated by a blank line', () => {
     const lines = ['Body line', 'Signed-off-by: Me'];
-    expect(() => parser.split(lines)).toThrow(ValidationError);
+    expect(() => parser.split(lines)).toThrow(TrailerNoSeparatorError);
   });
 
   it('returns the full message as body when there are no trailers', () => {

@@ -1,6 +1,6 @@
 import { GitCommitMessageSchema } from '../schemas/GitCommitMessageSchema.js';
 import GitTrailer from '../value-objects/GitTrailer.js';
-import ValidationError from '../errors/ValidationError.js';
+import CommitMessageInvalidError from '../errors/CommitMessageInvalidError.js';
 import { ZodError } from 'zod';
 import { GitTrailerSchema } from '../schemas/GitTrailerSchema.js';
 
@@ -8,18 +8,24 @@ const defaultFormatter = (value) => (value ?? '').toString().trim();
 
 const ensureFormatterIsFunction = (name, formatter) => {
   if (formatter !== undefined && typeof formatter !== 'function') {
-    throw new ValidationError(
-      `Formatter "${name}" must be a function`,
-      ValidationError.CODE_COMMIT_MESSAGE_INVALID,
-      { formatterName: name, formatterValue: formatter }
-    );
+    throw new CommitMessageInvalidError(`Formatter "${name}" must be a function`, {
+      formatterName: name,
+      formatterValue: formatter,
+    });
   }
 };
 
 /**
- * Domain entity representing a structured Git commit message.
+ * Domain entity representing a structured Git commit message (title/body/trailers).
  */
 export default class GitCommitMessage {
+  /**
+   * @param {{ title: string; body?: string; trailers?: Array<{ key: string; value: string } | GitTrailer> }} payload
+   * @param {{
+   *   trailerSchema?: import('../schemas/GitTrailerSchema.js').GitTrailerSchema,
+   *   formatters?: { titleFormatter?: (value: string) => string; bodyFormatter?: (value: string) => string }
+   * } } [options]
+   */
   constructor(
     { title, body = '', trailers = [] },
     { trailerSchema = GitTrailerSchema, formatters = {} } = {}
@@ -39,18 +45,18 @@ export default class GitCommitMessage {
       );
     } catch (error) {
       if (error instanceof ZodError) {
-        throw new ValidationError(
-          `Invalid commit message: ${error.issues.map((i) => i.message).join(', ')}`,
-          ValidationError.CODE_COMMIT_MESSAGE_INVALID,
-          { issues: error.issues }
-        );
+      throw new CommitMessageInvalidError(
+        `Invalid commit message: ${error.issues.map((i) => i.message).join(', ')}`,
+        { issues: error.issues }
+      );
       }
       throw error;
     }
   }
 
   /**
-   * Returns the encoded commit message string.
+   * Returns the encoded commit message string (title, blank line, body, trailers).
+   * @returns {string}
    */
   toString() {
     let message = `${this.title}\n\n`;
@@ -65,6 +71,9 @@ export default class GitCommitMessage {
     return `${message.trimEnd()  }\n`;
   }
 
+  /**
+   * @returns {{ title: string; body: string; trailers: Array<{ key: string; value: string }> }}
+   */
   toJSON() {
     return {
       title: this.title,

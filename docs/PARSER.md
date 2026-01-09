@@ -7,7 +7,7 @@ The parser in `TrailerCodecService.decode()` walks **backwards** from the bottom
 1. **Normalize line endings** to `\n` and split the message.
 2. **Consume the title** (the first line) and drop the optional blank line that separates it from the body.
 3. **Walk backward** with `_findTrailerStartIndex` until either a non-matching line or an empty line appears; contiguous `Key: Value` patterns form the trailer block.
-4. **Validate the separator**: `_validateTrailerSeparation` ensures there is a blank line before the trailers. Messages that omit the blank line now throw `ValidationError`.
+4. **Validate the separator**: `_validateTrailerSeparation` ensures there is a blank line before the trailers. Messages that omit the blank line now throw `TrailerNoSeparatorError`.
 5. **Trim the body** without double allocations: `_trimBody` trims leading/trailing blank lines via index arithmetic and one `join`.
 6. **Parse trailers** using the schema bundle’s `keyPattern`, instantiating trailers via the injected `trailerFactory`.
 

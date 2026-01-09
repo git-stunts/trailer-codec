@@ -1,12 +1,33 @@
 import { TRAILER_KEY_RAW_PATTERN_STRING } from '../schemas/GitTrailerSchema.js';
-import ValidationError from '../errors/ValidationError.js';
+import TrailerNoSeparatorError from '../errors/TrailerNoSeparatorError.js';
 
+/**
+ * Parses trailer blocks from a normalized commit-body array.
+ * @property {RegExp} lineRegex – compiled regex used to capture `<key>: <value>` per-line.
+ */
 export default class TrailerParser {
+  /**
+   * @param {Object} [options]
+   * @param {string} [options.keyPattern] – character class used to validate trailer keys (default `TRAILER_KEY_RAW_PATTERN_STRING`).
+   */
   constructor({ keyPattern = TRAILER_KEY_RAW_PATTERN_STRING } = {}) {
+    /**
+     * @private
+     * @type {string}
+     */
     this._keyPattern = keyPattern;
+    /**
+     * @type {RegExp}
+     */
     this.lineRegex = new RegExp(`^(${keyPattern}):\\s*(.*)$`);
   }
 
+  /**
+   * Splits the normalized lines into body lines and trailer lines.
+   * @param {string[]} lines – normalized line array (LF-only).
+   * @returns {{ trailerStart: number, bodyLines: string[], trailerLines: string[] }}
+   * @throws {TrailerNoSeparatorError} when trailers start immediately after a non-blank line.
+   */
   split(lines) {
     const trailerStart = this._findTrailerStart(lines);
     this._validateTrailerSeparation(lines, trailerStart);
@@ -17,6 +38,12 @@ export default class TrailerParser {
     };
   }
 
+  /**
+   * Walks backward from the end of the message until the trailer block is found.
+   * @private
+   * @param {string[]} lines
+   * @returns {number}
+   */
   _findTrailerStart(lines) {
     let trailerStart = lines.length;
     const trailerLineTest = new RegExp(`^${this._keyPattern}: `);
@@ -39,17 +66,23 @@ export default class TrailerParser {
     return trailerStart;
   }
 
+  /**
+   * Ensures there is a blank line separating the body from trailers.
+   * @private
+   * @param {string[]} lines
+   * @param {number} trailerStart
+   * @throws {TrailerNoSeparatorError}
+   */
   _validateTrailerSeparation(lines, trailerStart) {
     if (trailerStart === lines.length) {
       return;
     }
     const borderLine = trailerStart > 0 ? lines[trailerStart - 1] : '';
     if (borderLine.trim() !== '') {
-      throw new ValidationError(
-        'Trailers must be separated from the body by a blank line',
-        ValidationError.CODE_TRAILER_NO_SEPARATOR,
-        { trailerStart, borderLine }
-      );
+      throw new TrailerNoSeparatorError('Trailers must be separated from the body by a blank line', {
+        trailerStart,
+        borderLine,
+      });
     }
   }
 }

@@ -25,6 +25,13 @@ function normalizeTrailers(entity) {
   }, {});
 }
 
+/**
+ * Trim whitespace from a commit body segment and optionally keep a trailing newline.
+ * @param {string} [body]
+ * @param {Object} [options]
+ * @param {boolean} [options.keepTrailingNewline=false]
+ * @returns {string}
+ */
 export function formatBodySegment(body, { keepTrailingNewline = false } = {}) {
   const trimmed = (body ?? '').trim();
   if (!trimmed) {
@@ -35,6 +42,13 @@ export function formatBodySegment(body, { keepTrailingNewline = false } = {}) {
 
 /**
  * Advanced helper factory for tests or tools that need direct access to helpers.
+ */
+/**
+ * Advanced helper factory for tests or when you need to control the service instance.
+ * @param {Object} [options]
+ * @param {TrailerCodecService} [options.service] - Optional custom service (defaults to new one).
+ * @param {Object} [options.bodyFormatOptions] - Options forwarded to `formatBodySegment`.
+ * @returns {{ decodeMessage: (input: string) => { title: string, body: string, trailers: Record<string,string> }, encodeMessage: (payload: { title: string, body?: string, trailers?: Record<string,string> }) => string }}
  */
 export function createMessageHelpers({ service = new TrailerCodecService(), bodyFormatOptions } = {}) {
   function decodeMessage(input) {
@@ -55,12 +69,22 @@ export function createMessageHelpers({ service = new TrailerCodecService(), body
   return { decodeMessage, encodeMessage };
 }
 
+/**
+ * Construct a ready-to-use `TrailerCodec` with a fresh service instance.
+ * @param {Object} [options]
+ * @param {Object} [options.bodyFormatOptions] - Passed to helpers for body trimming.
+ * @returns {TrailerCodec}
+ */
 export function createDefaultTrailerCodec({ bodyFormatOptions } = {}) {
   return new TrailerCodec({ service: new TrailerCodecService(), bodyFormatOptions });
 }
 
 /**
  * @deprecated Use `TrailerCodec` instances for most call sites.
+ */
+/**
+ * @deprecated Use `TrailerCodec.decodeMessage` directly.
+ * Convenience wrapper that builds a default codec and decodes the message.
  */
 export function decodeMessage(message, bodyFormatOptions) {
   return createDefaultTrailerCodec({ bodyFormatOptions }).decodeMessage(message);
@@ -76,6 +100,9 @@ export function encodeMessage(payload, bodyFormatOptions) {
 /**
  * TrailerCodec is the main public API. Provide a `TrailerCodecService` to reuse configuration
  * and helper instances.
+ */
+/**
+ * TrailerCodec is the main public API for encode/decode through an injectable service.
  */
 export default class TrailerCodec {
   /**

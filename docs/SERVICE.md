@@ -11,9 +11,9 @@
 | `parser` | `new TrailerParser({ keyPattern: schemaBundle.keyPattern })` | Splits body vs trailers, validates the blank-line separator, and exposes `lineRegex` (compiled from `schemaBundle.keyPattern`) so you can match each trailer line consistently. Inject a decorated parser to control detection heuristics and refer to [`docs/PARSER.md`](docs/PARSER.md) for parser internals. |
 | `messageNormalizer` | `new MessageNormalizer()` | Normalizes line endings (`
 ` → `
-`) and guards against messages > 5 MB (see `VALIDATION_ERROR`). Override to adjust the max size or normalization logic. |
-| `titleExtractor` | `new TitleExtractor()` | Grabs the first line as the title and skips the optional blank line before the body. Replace to support multi-line titles or custom separators. |
-| `bodyComposer` | `new BodyComposer()` | Trims leading/trailing blank lines from the body while preserving user whitespace inside. Swap it when you want to preserve blank lines that occur at the edges. |
+`) and guards against messages > 5 MB (throws `TrailerTooLargeError`). Override to adjust the max size or normalization logic. |
+| `titleExtractor` | `extractTitle` | Grabs the first line as the title, trims it, and skips consecutive blank lines. Replace to support multi-line titles or custom separators. |
+| `bodyComposer` | `composeBody` | Trims leading/trailing blank lines from the body while preserving user whitespace inside. Swap it when you want to preserve blank lines that occur at the edges. |
 | `formatters` | `{}` | Accepts `{ titleFormatter, bodyFormatter }` functions applied before serialization. Use them to normalize casing, apply templates, or inject defaults before `encode()`. |
 
 TrailerParser compiles the `schemaBundle.keyPattern` into `parser.lineRegex` during construction, so each trailer line is matched with the same RegExp used for validation; refer to [`docs/PARSER.md`](docs/PARSER.md) or `TrailerParser` constructor docs for more detail when you override this behavior.
@@ -21,13 +21,13 @@ TrailerParser compiles the `schemaBundle.keyPattern` into `parser.lineRegex` dur
 ## Decode pipeline (see `decode()` in `src/domain/services/TrailerCodecService.js`)
 
 1. **Empty message guard** — Immediately returns an empty `GitCommitMessage` when given `undefined`/`''` so downstream code receives an entity instead of `null`.
-2. **Message size check** — `MessageNormalizer.guardMessageSize()` enforces the 5 MB limit and throws `ValidationError.CODE_MESSAGE_TOO_LARGE` when exceeded.
+2. **Message size check** — `MessageNormalizer.guardMessageSize()` enforces the 5 MB limit and throws `TrailerTooLargeError` when exceeded.
 3. **Line normalization** — `MessageNormalizer.normalizeLines()` converts `
 ` to `
 ` and splits into lines.
-4. **Title extraction** — `TitleExtractor.extract()` takes the first line as the title and skips the optional blank line between the title and body.
-5. **Split body/trailers** — `TrailerParser.split()` walks backward from the end of the message (using `_findTrailerStart`) to locate the trailer block and enforce the blank-line guard (`ValidationError.CODE_TRAILER_NO_SEPARATOR`).
-6. **Compose body** — `BodyComposer.compose()` trims blank lines from the edges but keeps inner spacing intact.
+4. **Title extraction** — `extractTitle()` takes the first line, trims it, and skips all blank lines between the title and body.
+5. **Split body/trailers** — `TrailerParser.split()` walks backward from the end of the message (using `_findTrailerStart`) to locate the trailer block and enforce the blank-line guard (`TrailerNoSeparatorError`).
+6. **Compose body** — `composeBody()` trims blank lines from the edges but keeps inner spacing intact.
 7. **Build trailers** — Iterates over the trailer lines, matches each against `parser.lineRegex`, and calls `trailerFactory(key, value, schemaBundle.schema)` to convert them into `GitTrailer` instances.
 8. **Entity construction** — Returns a `GitCommitMessage` with the normalized title/body and the built trailers; `formatters` (e.g., `titleFormatter`, `bodyFormatter`) run during this step.
 
@@ -41,7 +41,7 @@ TrailerParser compiles the `schemaBundle.keyPattern` into `parser.lineRegex` dur
 - **Schema bundle**: call `createGitTrailerSchemaBundle()` with `keyPattern`/`keyMaxLength` and pass it as `schemaBundle` to alter validation.
 - **Parser**: supply a custom `TrailerParser` (e.g., with a `parserOptions` object) via `createConfiguredCodec`; it can override `_findTrailerStart` heuristics while still leveraging the rest of the service.
 - **Trailer factory**: use `trailerFactory` to wrap `GitTrailer` creation with logging, metrics, or a different subclass.
-- **Helpers**: replace `MessageNormalizer`, `TitleExtractor`, or `BodyComposer` when you need different normalization or trimming strategies (useful for non-Git commit inputs).
+- **Helpers**: replace `MessageNormalizer`, `extractTitle`, or `composeBody` when you need different normalization or trimming strategies (useful for non-Git commit inputs).
 - **Formatters**: pass `formatters` (e.g., `{ titleFormatter: (value) => value.toUpperCase() }`) to modify the title/body before serialization.
 
 For a ready-to-use abstraction, prefer `createConfiguredCodec()` (which wires your custom schema, parser, and formatters) or extend `TrailerCodecService` via dependency injection rather than subclassing.
