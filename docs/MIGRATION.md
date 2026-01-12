@@ -254,9 +254,6 @@ Ensure you're catching the new error types:
 
 ### 4. Check Trailer Key Usage
 Search for hardcoded trailer keys with capital letters:
-```bash
-grep -r "trailers\['\[A-Z\]" src/
-```
 
 ---
 

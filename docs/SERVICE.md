@@ -9,9 +9,7 @@
 | `schemaBundle` | `getDefaultTrailerSchemaBundle()` | Supplies `GitTrailerSchema`, `keyPattern`, and `keyRegex`. Pass a custom bundle from `createGitTrailerSchemaBundle()` to change validation rules. |
 | `trailerFactory` | `new GitTrailer(key, value, schema)` | Creates trailer value objects. Swap this out for instrumentation or a different trailer implementation. |
 | `parser` | `new TrailerParser({ keyPattern: schemaBundle.keyPattern })` | Splits body vs trailers, validates the blank-line separator, and exposes `lineRegex` (compiled from `schemaBundle.keyPattern`) so you can match each trailer line consistently. Inject a decorated parser to control detection heuristics and refer to [`docs/PARSER.md`](docs/PARSER.md) for parser internals. |
-| `messageNormalizer` | `new MessageNormalizer()` | Normalizes line endings (`
-` → `
-`) and guards against messages > 5 MB (throws `TrailerTooLargeError`). Override to adjust the max size or normalization logic. |
+| `messageNormalizer` | `new MessageNormalizer()` | Normalizes line endings (`\r\n` → `\n`) and guards against messages > 5 MB (throws `TrailerTooLargeError`). Override to adjust the max size or normalization logic. |
 | `titleExtractor` | `extractTitle` | Grabs the first line as the title, trims it, and skips consecutive blank lines. Replace to support multi-line titles or custom separators. |
 | `bodyComposer` | `composeBody` | Trims leading/trailing blank lines from the body while preserving user whitespace inside. Swap it when you want to preserve blank lines that occur at the edges. |
 | `formatters` | `{}` | Accepts `{ titleFormatter, bodyFormatter }` functions applied before serialization. Use them to normalize casing, apply templates, or inject defaults before `encode()`. |
@@ -22,9 +20,7 @@ TrailerParser compiles the `schemaBundle.keyPattern` into `parser.lineRegex` dur
 
 1. **Empty message guard** — Immediately returns an empty `GitCommitMessage` when given `undefined`/`''` so downstream code receives an entity instead of `null`.
 2. **Message size check** — `MessageNormalizer.guardMessageSize()` enforces the 5 MB limit and throws `TrailerTooLargeError` when exceeded.
-3. **Line normalization** — `MessageNormalizer.normalizeLines()` converts `
-` to `
-` and splits into lines.
+3. **Line normalization** — `MessageNormalizer.normalizeLines()` converts `\r\n` to `\n` and splits into lines.
 4. **Title extraction** — `extractTitle()` takes the first line, trims it, and skips all blank lines between the title and body.
 5. **Split body/trailers** — `TrailerParser.split()` walks backward from the end of the message (using `_findTrailerStart`) to locate the trailer block and enforce the blank-line guard (`TrailerNoSeparatorError`).
 6. **Compose body** — `composeBody()` trims blank lines from the edges but keeps inner spacing intact.
