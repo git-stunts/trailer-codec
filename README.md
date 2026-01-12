@@ -6,7 +6,7 @@
 
 A robust encoder/decoder for structured metadata within Git commit messages. Built with **Hexagonal Architecture** and **Domain-Driven Design (DDD)**.
 
-## 🚀 Key Features
+## Key Features
 
 - **Standard Compliant**: Follows the Git "trailer" convention (RFC 822 / Email headers)
 - **DoS Protection**: Built-in 5MB message size limit to prevent attacks
@@ -15,34 +15,30 @@ A robust encoder/decoder for structured metadata within Git commit messages. Bui
 - **Case Normalization**: Trailer keys normalized to lowercase for consistency
 - **Pure Domain Logic**: No I/O, no Git subprocess execution
 
-## 🏗️ Design Principles
+## Design Principles
 
 1. **Domain Purity**: Core logic independent of infrastructure
 2. **Type Safety**: Value Objects ensure data validity at instantiation
 3. **Immutability**: All entities are immutable
 4. **Separation of Concerns**: Encoding/decoding in dedicated service
 
-## 📋 Prerequisites
+## Prerequisites
 
 - **Node.js**: >= 20.0.0
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @git-stunts/trailer-codec
 ```
 
-## 🛠️ Developer & Testing
+## Developer & Testing
 
 - **Node.js ≥ 20** matches the `engines` field in `package.json` and is required for Vitest/ESM support.
 - `npm test` runs the Vitest suite, `npm run lint` validates the code with ESLint, and `npm run format` formats files with Prettier; all scripts target the entire repo root.
 - Consult `TESTING.md` for run modes, test filters, and tips for extending the suite before submitting contributions.
 
-## ☂️ Peer Dependencies
-
-`@git-stunts/trailer-codec` is built on top of **Zod v4**. If you install it in an existing project, ensure `zod` is also installed (>= 4.3.5) so all runtime schemas resolve cleanly.
-
-## 🛠️ Usage
+## Usage
 
 ### Basic Encoding/Decoding
 
@@ -74,7 +70,7 @@ console.log(decoded.trailers);   // { 'signed-off-by': 'James Ross', 'reviewed-b
 
 ### API Patterns
 
-- **Primary entry point**: `createDefaultTrailerCodec()` returns a `TrailerCodec` wired with a fresh `TrailerCodecService`; use `.encodeMessage()`/`.decodeMessage()` to keep configuration in one place.
+- **Primary entry point**: `createDefaultTrailerCodec()` returns a `TrailerCodec` wired with a fresh `TrailerCodecService`; use `.encode()`/`.decode()` (or `.encodeMessage()`/`.decodeMessage()`) to keep configuration in one place.
 - **Facade**: `TrailerCodec` keeps configuration near instantiation while still leveraging `createMessageHelpers()` under the hood (pass your own service when you need control).
 - **Advanced**: `createConfiguredCodec()` and direct `TrailerCodecService` usage let you swap schema bundles, parsers, formatters, or helper overrides when you need custom validation or formatting behavior. The standalone helpers `encodeMessage()`/`decodeMessage()` remain available as deprecated convenience wrappers.
 
@@ -200,6 +196,7 @@ See [SECURITY.md](SECURITY.md) for details.
 - [`TESTING.md`](TESTING.md) — How to run/extend the Vitest, lint, and format scripts plus contributor tips.
 - **Git hooks**: Run `npm run setuphooks` once per clone to point `core.hooksPath` at `scripts/`. The hook now runs just `npm run lint` and `npm run format` before each commit.
 
-## 📄 License
+## License
 
 Apache-2.0
+Copyright © 2026 [James Ross](https://github.com/flyingrobots)

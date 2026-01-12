@@ -9,47 +9,69 @@ const DOCS_CUSTOM_VALIDATION = 'docs/ADVANCED.md#custom-validation-rules';
  * Keys are normalized to lowercase and values trimmed before serialization.
  */
 export default class GitTrailer {
+  /**
+   * @param {string} key - Raw trailer key (e.g., Accepted).
+   * @param {string} value - Raw trailer value.
+   * @param {import('zod').ZodSchema} [schema=GitTrailerSchema] - Schema validating the pair.
+   * @throws {TrailerInvalidError|TrailerValueInvalidError} when the schema rejects the pair.
+   */
   constructor(key, value, schema = GitTrailerSchema) {
-    /**
-     * @param {string} key - Raw trailer key (e.g., Accepted).
-     * @param {string} value - Raw trailer value.
-     * @param {import('zod').ZodSchema} [schema=GitTrailerSchema] - Schema validating the pair.
-     * @throws {TrailerInvalidError|TrailerValueInvalidError} when the schema rejects the pair.
-     */
-    const actualSchema = schema ?? GitTrailerSchema;
-    if (!actualSchema || typeof actualSchema.parse !== 'function') {
-      throw new TypeError('Invalid schema: missing parse method');
-    }
-
+    const actualSchema = this._validateSchema(schema);
     const normalizedKey = String(key ?? '');
     const normalizedValue = String(value ?? '');
 
     try {
-      const data = { key: normalizedKey, value: normalizedValue };
-      actualSchema.parse(data);
+      actualSchema.parse({ key: normalizedKey, value: normalizedValue });
       this.key = normalizedKey.toLowerCase();
       this.value = normalizedValue.trim();
     } catch (error) {
-      if (error instanceof ZodError) {
-        const valueIssue = error.issues.some((issue) => issue.path.includes('value'));
-        const ErrorClass = valueIssue ? TrailerValueInvalidError : TrailerInvalidError;
-        const rawValue = String(value ?? '');
-        const truncatedValue =
-          rawValue.length > 120 ? `${rawValue.slice(0, 120)}…[truncated]` : rawValue;
-        throw new ErrorClass(
-          `Invalid trailer '${normalizedKey.toLowerCase()}' (value='${truncatedValue}'): ${error.issues
-            .map((issue) => issue.message)
-            .join(', ')}. See ${DOCS_CUSTOM_VALIDATION}.`,
-          {
-            issues: error.issues,
-            key: normalizedKey.toLowerCase(),
-            truncatedValue,
-            docs: DOCS_CUSTOM_VALIDATION,
-          }
-        );
-      }
-      throw error;
+      throw this._handleValidationError(error, normalizedKey, value);
     }
+  }
+
+  /**
+   * Validates that schema has required parse method.
+   * @private
+   */
+  _validateSchema(schema) {
+    const actualSchema = schema ?? GitTrailerSchema;
+    if (!actualSchema || typeof actualSchema.parse !== 'function') {
+      throw new TypeError('Invalid schema: missing parse method');
+    }
+    return actualSchema;
+  }
+
+  /**
+   * Handles validation errors from Zod parsing.
+   * @private
+   */
+  _handleValidationError(error, normalizedKey, rawValue) {
+    if (!(error instanceof ZodError)) {
+      return error;
+    }
+
+    const valueIssue = error.issues.some((issue) => issue.path.includes('value'));
+    const ErrorClass = valueIssue ? TrailerValueInvalidError : TrailerInvalidError;
+    const truncatedValue = this._truncateValue(String(rawValue ?? ''));
+    const issueMessages = error.issues.map((issue) => issue.message).join(', ');
+
+    return new ErrorClass(
+      `Invalid trailer '${normalizedKey.toLowerCase()}' (value='${truncatedValue}'): ${issueMessages}. See ${DOCS_CUSTOM_VALIDATION}.`,
+      {
+        issues: error.issues,
+        key: normalizedKey.toLowerCase(),
+        truncatedValue,
+        docs: DOCS_CUSTOM_VALIDATION,
+      }
+    );
+  }
+
+  /**
+   * Truncates long values for error messages.
+   * @private
+   */
+  _truncateValue(value) {
+    return value.length > 120 ? `${value.slice(0, 120)}…[truncated]` : value;
   }
 
   toString() {

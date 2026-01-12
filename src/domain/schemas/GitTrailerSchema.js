@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import TrailerInvalidError from '../errors/TrailerInvalidError.js';
 
 const DEFAULT_KEY_PATTERN = '[A-Za-z0-9_\\-]+';
 const MAX_PATTERN_LENGTH = 256;
@@ -17,7 +18,10 @@ const buildKeyRegex = (keyPattern) => {
   try {
     return new RegExp(`^${keyPattern}$`);
   } catch (error) {
-    throw new TypeError(`Invalid regex pattern: ${error.message}`);
+    throw new TrailerInvalidError(
+      `Invalid regex pattern for trailer key: ${error.message}`,
+      { keyPattern, originalError: error.message }
+    );
   }
 };
 

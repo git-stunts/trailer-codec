@@ -31,27 +31,57 @@ export default class GitCommitMessage {
     { trailerSchema = GitTrailerSchema, formatters = {} } = {}
   ) {
     try {
-      const data = { title, body, trailers };
-      GitCommitMessageSchema.parse(data);
+      GitCommitMessageSchema.parse({ title, body, trailers });
 
-      const { titleFormatter = defaultFormatter, bodyFormatter = defaultFormatter } = formatters;
-      ensureFormatterIsFunction('titleFormatter', titleFormatter);
-      ensureFormatterIsFunction('bodyFormatter', bodyFormatter);
+      const { titleFormatter, bodyFormatter } = this._validateFormatters(formatters);
 
       this.title = titleFormatter(title);
       this.body = bodyFormatter(body);
-      this.trailers = trailers.map((t) =>
-        t instanceof GitTrailer ? t : new GitTrailer(t.key, t.value, trailerSchema)
-      );
+      this.trailers = this._normalizeTrailers(trailers, trailerSchema);
     } catch (error) {
-      if (error instanceof ZodError) {
-      throw new CommitMessageInvalidError(
+      throw this._handleConstructorError(error);
+    }
+  }
+
+  /**
+   * Validates and returns formatters with defaults applied.
+   * @private
+   */
+  _validateFormatters(formatters) {
+    const { titleFormatter = defaultFormatter, bodyFormatter = defaultFormatter } = formatters;
+    ensureFormatterIsFunction('titleFormatter', titleFormatter);
+    ensureFormatterIsFunction('bodyFormatter', bodyFormatter);
+    return { titleFormatter, bodyFormatter };
+  }
+
+  /**
+   * Converts trailer-like objects to GitTrailer instances.
+   * @private
+   */
+  _normalizeTrailers(trailers, trailerSchema) {
+    return trailers.map((t) =>
+      t instanceof GitTrailer ? t : new GitTrailer(t.key, t.value, trailerSchema)
+    );
+  }
+
+  /**
+   * Wraps constructor errors in CommitMessageInvalidError.
+   * @private
+   */
+  _handleConstructorError(error) {
+    if (error instanceof ZodError) {
+      return new CommitMessageInvalidError(
         `Invalid commit message: ${error.issues.map((i) => i.message).join(', ')}`,
         { issues: error.issues }
       );
-      }
-      throw error;
     }
+    if (error instanceof CommitMessageInvalidError) {
+      return error;
+    }
+    return new CommitMessageInvalidError(
+      `Unexpected error during commit message construction: ${error.message}`,
+      { originalError: error, errorType: error.constructor.name }
+    );
   }
 
   /**

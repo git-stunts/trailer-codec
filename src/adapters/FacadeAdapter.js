@@ -1,4 +1,5 @@
 import TrailerCodecService from '../domain/services/TrailerCodecService.js';
+import TrailerInvalidError from '../domain/errors/TrailerInvalidError.js';
 
 function normalizeInput(input) {
   if (typeof input === 'string' && input.length > 0) {
@@ -17,8 +18,19 @@ function normalizeTrailers(entity) {
     if (!trailer || typeof trailer.key !== 'string' || trailer.key.trim() === '') {
       throw new TypeError('Invalid trailer: non-empty string key is required');
     }
+    if (typeof trailer.value !== 'string') {
+      throw new TrailerInvalidError('Trailer value must be a string', {
+        key: trailer.key,
+        invalidValue: trailer.value,
+        valueType: typeof trailer.value,
+      });
+    }
     if (acc[trailer.key] !== undefined) {
-      throw new Error(`Duplicate trailer key detected: "${trailer.key}"`);
+      throw new TrailerInvalidError(`Duplicate trailer key: "${trailer.key}"`, {
+        key: trailer.key,
+        existingValue: acc[trailer.key],
+        duplicateValue: trailer.value,
+      });
     }
     acc[trailer.key] = trailer.value;
     return acc;
@@ -51,7 +63,7 @@ export function formatBodySegment(body, { keepTrailingNewline = false } = {}) {
  * @returns {{ decodeMessage: (input: string) => { title: string, body: string, trailers: Record<string,string> }, encodeMessage: (payload: { title: string, body?: string, trailers?: Record<string,string> }) => string }}
  */
 export function createMessageHelpers({ service = new TrailerCodecService(), bodyFormatOptions } = {}) {
-  function decodeMessage(input) {
+  function decode(input) {
     const message = normalizeInput(input);
     const entity = service.decode(message);
     return {
@@ -61,13 +73,66 @@ export function createMessageHelpers({ service = new TrailerCodecService(), body
     };
   }
 
-  function encodeMessage({ title, body, trailers = {} }) {
+  function encode({ title, body, trailers = {} }) {
     const trailerArray = Object.entries(trailers).map(([key, value]) => ({ key, value }));
     return service.encode({ title, body, trailers: trailerArray });
   }
 
-  return { decodeMessage, encodeMessage };
+  return { decodeMessage: decode, encodeMessage: encode };
 }
+
+/**
+ * TrailerCodec is the main public API. Provide a `TrailerCodecService` to reuse configuration
+ * and helper instances.
+ */
+/**
+ * TrailerCodec is the main public API for encode/decode through an injectable service.
+ */
+class TrailerCodec {
+  /**
+   * @param {{ service: TrailerCodecService, bodyFormatOptions?: Object }} options
+   */
+  constructor({ service, bodyFormatOptions } = {}) {
+    if (!service) {
+      throw new TypeError('TrailerCodec requires a TrailerCodecService instance');
+    }
+    this.helpers = createMessageHelpers({ service, bodyFormatOptions });
+  }
+
+  /**
+   * Decode a raw commit payload.
+   * @param {string} input
+   */
+  decodeMessage(input) {
+    return this.helpers.decodeMessage(input);
+  }
+
+  /**
+   * Encode a payload back into a commit string.
+   * @param {Object} payload
+   */
+  encodeMessage(payload) {
+    return this.helpers.encodeMessage(payload);
+  }
+
+  /**
+   * Convenience alias for decodeMessage.
+   * @param {string} input
+   */
+  decode(input) {
+    return this.decodeMessage(input);
+  }
+
+  /**
+   * Convenience alias for encodeMessage.
+   * @param {Object} payload
+   */
+  encode(payload) {
+    return this.encodeMessage(payload);
+  }
+}
+
+export default TrailerCodec;
 
 /**
  * Construct a ready-to-use `TrailerCodec` with a fresh service instance.
@@ -95,39 +160,4 @@ export function decodeMessage(message, bodyFormatOptions) {
  */
 export function encodeMessage(payload, bodyFormatOptions) {
   return createDefaultTrailerCodec({ bodyFormatOptions }).encodeMessage(payload);
-}
-
-/**
- * TrailerCodec is the main public API. Provide a `TrailerCodecService` to reuse configuration
- * and helper instances.
- */
-/**
- * TrailerCodec is the main public API for encode/decode through an injectable service.
- */
-export default class TrailerCodec {
-  /**
-   * @param {{ service: TrailerCodecService, bodyFormatOptions?: Object }} options
-   */
-  constructor({ service, bodyFormatOptions } = {}) {
-    if (!service) {
-      throw new TypeError('TrailerCodec requires a TrailerCodecService instance');
-    }
-    this.helpers = createMessageHelpers({ service, bodyFormatOptions });
-  }
-
-  /**
-   * Decode a raw commit payload.
-   * @param {string} input
-   */
-  decodeMessage(input) {
-    return this.helpers.decodeMessage(input);
-  }
-
-  /**
-   * Encode a payload back into a commit string.
-   * @param {Object} payload
-   */
-  encodeMessage(payload) {
-    return this.helpers.encodeMessage(payload);
-  }
 }

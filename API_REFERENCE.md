@@ -26,7 +26,8 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 
 ### `TrailerCodec`
 - Constructor opts: `{ service = new TrailerCodecService(), bodyFormatOptions }`.
-- Exposes `decode(input)` and `encode(payload)` methods that delegate to `createMessageHelpers()`.
+- Exposes `decodeMessage(input)`/`decode(input)` and `encodeMessage(payload)`/`encode(payload)` methods that delegate to `createMessageHelpers()`.
+- The `decode()` and `encode()` methods are convenience aliases added in v2.1.0.
 
 ### `createConfiguredCodec({ keyPattern, keyMaxLength, parserOptions, formatters, bodyFormatOptions } = {})`
 - Creates a schema bundle via `createGitTrailerSchemaBundle`, a `TrailerParser`, and a `TrailerCodecService`, then exposes `{ service, helpers, decodeMessage, encodeMessage }`.
@@ -34,7 +35,7 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 
 ## Domain model exports
 
--### `GitCommitMessage`
+### `GitCommitMessage`
 ```ts
 new GitCommitMessage(
   payload: { title: string; body?: string; trailers?: GitTrailerInput[] },

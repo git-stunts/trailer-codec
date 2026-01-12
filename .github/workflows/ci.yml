@@ -29,5 +29,4 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm install
-      - name: Run tests in Docker
-        run: docker-compose run --rm test
+      - run: npm test

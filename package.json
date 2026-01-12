@@ -1,6 +1,6 @@
 {
   "name": "@git-stunts/trailer-codec",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Robust encoder/decoder for structured metadata in Git commit messages",
   "type": "module",
   "main": "index.js",
@@ -25,9 +25,6 @@
   "dependencies": {
     "zod": "^4.3.5"
   },
-  "peerDependencies": {
-    "zod": "^4.3.5"
-  },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "eslint": "^9.17.0",
@@ -37,12 +34,18 @@
   },
   "files": [
     "src",
+    "docs",
     "index.js",
     "README.md",
+    "API_REFERENCE.md",
+    "ARCHITECTURE.md",
     "LICENSE",
     "NOTICE",
     "SECURITY.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "TESTING.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "repository": {
     "type": "git",

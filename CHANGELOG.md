@@ -5,23 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [2.1.0] - 2026-01-11
 
 ### Added
-- Exposed `decodeMessage`/`encodeMessage` helpers for faster integration without instantiating the facade.
-- Documented advanced/custom validation workflows (`docs/ADVANCED.md`), parser behavior (`docs/PARSER.md`), migration guidance, performance notes, and release steps (`docs/MIGRATION.md`, `docs/PERFORMANCE.md`, `docs/RELEASE.md`).
-- Added schema factory (`createGitTrailerSchemaBundle`) so downstream code can override trailer validation rules.
-- Introduced `TrailerParser` with its own tests so parsing can be swapped or reused without subclassing the service.
-- Expanded the README with developer/testing guidance, public helper details, and links to `TESTING.md`, `API_REFERENCE.md`, and `docs/SERVICE.md`, which now document the helper contract, API surface, and service wiring.
-- Added README/MIGRATION documentation for the `decodeMessage()` newline trimming change (v0.2.0+) and mapped the migration path plus helper usage for `TrailerCodec` bodyFormatOptions and `formatBodySegment`.
+- **Convenience method aliases**: `TrailerCodec` now exposes `decode()`/`encode()` as shorter aliases for `decodeMessage()`/`encodeMessage()`
+- **Migration guide**: Created comprehensive `docs/MIGRATION.md` covering v1.x → v2.0 and v2.0 → v2.1 upgrades
+- **Enhanced security documentation**: Expanded `SECURITY.md` with detailed DoS protection limits and customization examples
+- **Test coverage**: Added 4 new tests for convenience aliases in `test/unit/adapters/FacadeAdapter.test.js`
+- **Comprehensive JSDoc**: Added detailed JSDoc comments to all 13 public exports in `index.js`
 
 ### Changed
-- Trimmed commit bodies without double allocation and enforced a blank line before trailers.
-- Tightened trailer validation (newline-free values) and exposed the schema bundle to service/fixtures, pairing with the new helper wrappers.
-- Removed the docker guard dependency so tests run locally without the external guard enforcement.
-- Upgraded `zod` dependency to the latest 3.25.x release.
-- Added dedicated validation error classes (`TrailerTooLargeError`, `TrailerNoSeparatorError`, `TrailerValueInvalidError`, `TrailerInvalidError`, `CommitMessageInvalidError`) for granular diagnostics.
- - Updated `decode()` to accept raw strings with a deprecation warning when the legacy object form is used.
+- **Improved error handling**: All errors in `GitCommitMessage` constructor now properly wrapped in `CommitMessageInvalidError`
+- **Enhanced validation**: Added string type validation for trailer values in `normalizeTrailers()`
+- **Better error types**: Duplicate trailer keys and invalid values now throw `TrailerInvalidError` with rich metadata
+- **Domain-specific errors**: RegExp construction errors in `GitTrailerSchema` now throw `TrailerInvalidError` instead of generic `TypeError`
+- **Reduced constructor complexity**: Refactored `GitCommitMessage`, `TrailerCodecService`, and `GitTrailer` constructors by extracting validation and error handling into private methods - all ESLint complexity warnings now resolved
+
+### Fixed
+- API inconsistency where documentation referenced `codec.decode()` but only `codec.decodeMessage()` existed
+- Missing validation for trailer value types could cause runtime crashes
+- Generic Error types in facade layer breaking documented error hierarchy
+- README API patterns section now mentions both method name forms
+- API_REFERENCE.md typo on line 37 (extra `-` character)
+- TESTING.md incorrect Vitest flags (`--runInBand` → `--reporter=verbose`)
+- Package.json `files` field now includes `docs/` directory and all documentation files
+
+### Removed
+- **Unnecessary Docker configuration**: Removed `Dockerfile`, `docker-compose.yml`, and `.dockerignore` - not needed for pure domain logic library with no I/O or subprocess execution
+- **Simplified CI workflow**: Tests now run directly via `npm test` without Docker overhead
+
+### Documentation
+- Created `FIXES_APPLIED.md` documenting all changes in detail
+- Updated `API_REFERENCE.md` to document new aliases
+- Updated `README.md` to clarify both method names are supported
+- Corrected `TESTING.md` with accurate Vitest command-line flags
+
+## [unreleased]
+
+### Planned
+- Integration test suite for real Git commit scenarios
+- Performance benchmarks for large messages
+- Additional edge case tests (unicode, empty input, concurrent usage)
 
 
 ## [2.0.0] - 2026-01-08

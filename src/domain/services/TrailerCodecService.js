@@ -32,19 +32,35 @@ export default class TrailerCodecService {
     bodyComposer = composeBody,
     formatters = {},
   } = {}) {
+    this.schemaBundle = this._validateSchemaBundle(schemaBundle);
+    this.trailerFactory = trailerFactory;
+    this.parser = this._initializeParser(parser, this.schemaBundle.keyPattern);
+    this.messageNormalizer = messageNormalizer;
+    this.titleExtractor = titleExtractor;
+    this.bodyComposer = bodyComposer;
+    this.formatters = formatters;
+  }
+
+  /**
+   * Validates that schemaBundle has required structure.
+   * @private
+   */
+  _validateSchemaBundle(schemaBundle) {
     if (!schemaBundle || typeof schemaBundle !== 'object') {
       throw new TypeError('schemaBundle is required');
     }
     if (!schemaBundle.keyPattern || !schemaBundle.schema) {
       throw new TypeError('schemaBundle must include schema and keyPattern');
     }
-    this.schemaBundle = schemaBundle;
-    this.trailerFactory = trailerFactory;
-    this.parser = parser ?? new TrailerParser({ keyPattern: schemaBundle.keyPattern });
-    this.messageNormalizer = messageNormalizer;
-    this.titleExtractor = titleExtractor;
-    this.bodyComposer = bodyComposer;
-    this.formatters = formatters;
+    return schemaBundle;
+  }
+
+  /**
+   * Initializes parser with keyPattern if not provided.
+   * @private
+   */
+  _initializeParser(parser, keyPattern) {
+    return parser ?? new TrailerParser({ keyPattern });
   }
 
   /**
