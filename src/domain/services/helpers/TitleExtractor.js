@@ -1,7 +1,4 @@
 /**
- * Extracts the title line and the index where the body starts.
- */
-/**
  * Extracts the title line and the body start index.
  * @param {string[]} lines – normalized commit lines.
  */

@@ -65,19 +65,11 @@ describe('TrailerCodecService', () => {
 
   it('rejects trailers without a blank line separator', () => {
     const raw = 'Title\nBody\nSigned-off-by: Me';
-    try {
-      service.decode(raw);
-    } catch (error) {
-      expect(error).toBeInstanceOf(TrailerNoSeparatorError);
-    }
+    expect(() => service.decode(raw)).toThrow(TrailerNoSeparatorError);
   });
 
   it('rejects trailer values containing line breaks', () => {
-    try {
-      service._buildTrailers(['Key: Value\nInjected']);
-    } catch (error) {
-      expect(error).toBeInstanceOf(TrailerValueInvalidError);
-    }
+    expect(() => service._buildTrailers(['Key: Value\nInjected'])).toThrow(TrailerValueInvalidError);
   });
 
   it('guards message size in helper', () => {

@@ -5,13 +5,13 @@ This file catalogs every public export from `@git-stunts/trailer-codec` so you c
 ## Encoding & decoding helpers
 
 ### `decodeMessage(message: string)`
-- Deprecated convenience wrapper around `new TrailerCodec().decode(message)`.
+- Deprecated convenience wrapper around `new TrailerCodec().decode(message)`. Use `TrailerCodec` instances instead. (to be removed in v3.0)
 - Input: a raw commit payload (title, optional body, trailers) as a string.
 - Output: `{ title: string, body: string, trailers: Record<string, string> }` where `body` is trimmed via `formatBodySegment` (see below) and trailer keys are normalized to lowercase.
 - Throws `TrailerCodecError` subclasses (e.g., `TrailerNoSeparatorError`, `TrailerValueInvalidError`, or `CommitMessageInvalidError`) for invalid titles, missing blank lines, oversized messages, or malformed trailers.
 
 ### `encodeMessage({ title: string, body?: string, trailers?: Record<string, string> })`
--- Deprecated convenience wrapper around `new TrailerCodec().encode(payload)`.
+-- Deprecated convenience wrapper around `new TrailerCodec().encode(payload)`. Use `TrailerCodec` instances instead. (to be removed in v3.0)
 - Builds a `GitCommitMessage` under the hood and returns the canonical string. Trailers are converted from plain objects to `GitTrailer` instances via the default factory (see `GitTrailer` below).
 
 ### `formatBodySegment(body?: string, { keepTrailingNewline = false })`

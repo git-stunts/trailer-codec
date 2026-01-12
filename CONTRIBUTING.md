@@ -22,7 +22,7 @@ We use **Vitest**.
 
 ## Project Structure
 
-```
+```text
 src/
   domain/
     entities/       # Identity, lifecycle

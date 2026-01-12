@@ -15,7 +15,7 @@ Blend `@git-stunts/trailer-codec` with Git history and tooling to treat commit t
 2. Pipe each commit body into a Node script that reuses `decodeMessage`:
 
    ```bash
-   git log --format=%B | node scripts/processCommits.js
+   git log --format=%x00%B | node scripts/processCommits.js
    ```
 
 3. Example `scripts/processCommits.js`:
@@ -31,7 +31,7 @@ Blend `@git-stunts/trailer-codec` with Git history and tooling to treat commit t
    });
 
    process.stdin.on('end', () => {
-     const commits = buffer.split('\n\n').filter(Boolean);
+     const commits = buffer.split('\0').filter(Boolean);
      for (const commit of commits) {
        const decoded = decodeMessage(commit);
        console.log({
@@ -54,8 +54,9 @@ Blend `@git-stunts/trailer-codec` with Git history and tooling to treat commit t
 
    ```javascript
    import { decodeMessage, formatBodySegment } from '@git-stunts/trailer-codec';
+   import readline from 'node:readline';
 
-   const reader = require('readline').createInterface({
+   const reader = readline.createInterface({
      input: process.stdin,
    });
 
@@ -87,8 +88,8 @@ Blend `@git-stunts/trailer-codec` with Git history and tooling to treat commit t
 import { decodeMessage } from '@git-stunts/trailer-codec';
 import { execSync } from 'child_process';
 
-const log = execSync('git log --format=%B').toString();
-const commits = log.split('\n\n').filter(Boolean);
+const log = execSync('git log --format=%x00%B').toString();
+const commits = log.split('\0').filter(Boolean);
 
 const posts = commits
   .map((commit) => decodeMessage(commit))

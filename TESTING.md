@@ -26,4 +26,4 @@ Use `npm test -- --watch` to run Vitest in watch mode while you iterate.
 ## Troubleshooting
 
 - If the suite fails due to missing modules, delete `node_modules` and rerun `npm install`.
-- ESLint/Prettier share the `.eslintrc.js`/`.prettierrc` configurations; run `npm run lint` first to enforce syntax, then `npm run format` to correct formatting drift.
+- ESLint/Prettier share the `eslint.config.js`/`.prettierrc` configurations; run `npm run lint` first to enforce syntax, then `npm run format` to correct formatting drift.
