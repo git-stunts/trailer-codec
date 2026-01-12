@@ -4,9 +4,11 @@
 [![CI](https://github.com/git-stunts/trailer-codec/actions/workflows/ci.yml/badge.svg)](https://github.com/git-stunts/trailer-codec/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/@git-stunts/trailer-codec.svg)](LICENSE)
 
-A robust encoder/decoder for structured metadata within Git commit messages. Built with **Hexagonal Architecture** and **Domain-Driven Design (DDD)**.
+<img width="420" src="https://github.com/user-attachments/assets/0a3800d9-12c4-4639-b6c3-b1782bf28c96" align="right" />
 
-## Key Features
+A robust encoder/decoder for structured metadata within Git commit messages.
+
+### Key Features
 
 - **Standard Compliant**: Follows the Git "trailer" convention (RFC 822 / Email headers)
 - **DoS Protection**: Built-in 5MB message size limit to prevent attacks
@@ -15,7 +17,7 @@ A robust encoder/decoder for structured metadata within Git commit messages. Bui
 - **Case Normalization**: Trailer keys normalized to lowercase for consistency
 - **Pure Domain Logic**: No I/O, no Git subprocess execution
 
-## Design Principles
+### Design Principles
 
 1. **Domain Purity**: Core logic independent of infrastructure
 2. **Type Safety**: Value Objects ensure data validity at instantiation
