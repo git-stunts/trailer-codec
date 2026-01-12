@@ -1,0 +1,67 @@
+{
+  "name": "@git-stunts/trailer-codec",
+  "version": "2.1.0",
+  "description": "Robust encoder/decoder for structured metadata in Git commit messages",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./service": "./src/domain/services/TrailerCodecService.js",
+    "./message": "./src/domain/entities/GitCommitMessage.js",
+    "./trailer": "./src/domain/value-objects/GitTrailer.js",
+    "./errors": "./src/domain/errors/TrailerCodecError.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "vitest run test/unit \"$@\"",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "setuphooks": "git config core.hooksPath scripts"
+  },
+  "author": "James Ross <james@flyingrobots.dev>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "vitest": "^3.0.0",
+    "@babel/parser": "^7.24.7"
+  },
+  "files": [
+    "src",
+    "docs",
+    "index.js",
+    "README.md",
+    "API_REFERENCE.md",
+    "ARCHITECTURE.md",
+    "LICENSE",
+    "NOTICE",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "TESTING.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/git-stunts/trailer-codec.git"
+  },
+  "homepage": "https://github.com/git-stunts/trailer-codec#readme",
+  "bugs": {
+    "url": "https://github.com/git-stunts/trailer-codec/issues"
+  },
+  "keywords": [
+    "git",
+    "commit",
+    "trailers",
+    "metadata",
+    "git-stunts",
+    "hexagonal",
+    "ddd"
+  ]
+}
