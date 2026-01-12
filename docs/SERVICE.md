@@ -20,9 +20,7 @@ TrailerParser compiles the `schemaBundle.keyPattern` into `parser.lineRegex` dur
 
 1. **Empty message guard** — Immediately returns an empty `GitCommitMessage` when given `undefined`/`''` so downstream code receives an entity instead of `null`.
 2. **Message size check** — `MessageNormalizer.guardMessageSize()` enforces the 5 MB limit and throws `TrailerTooLargeError` when exceeded.
-3. **Line normalization** — `MessageNormalizer.normalizeLines()` converts `
-` to `
-` and splits into lines.
+3. **Line normalization** — `MessageNormalizer.normalizeLines()` converts `\r\n` to `\n` and splits into lines.
 4. **Title extraction** — `extractTitle()` takes the first line, trims it, and skips all blank lines between the title and body.
 5. **Split body/trailers** — `TrailerParser.split()` walks backward from the end of the message (using `_findTrailerStart`) to locate the trailer block and enforce the blank-line guard (`TrailerNoSeparatorError`).
 6. **Compose body** — `composeBody()` trims blank lines from the edges but keeps inner spacing intact.
