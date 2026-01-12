@@ -19,7 +19,7 @@ export default class TrailerParser {
     /**
      * @type {RegExp}
      */
-    this.lineRegex = new RegExp(`^(${keyPattern}):\\s*(.*)$`);
+    this.lineRegex = new RegExp(`^(?<key>${keyPattern}):\\s*(?<value>[\\s\\S]*)$`);
   }
 
   /**

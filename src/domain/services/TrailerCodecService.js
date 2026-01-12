@@ -142,9 +142,14 @@ export default class TrailerCodecService {
   _buildTrailers(lines) {
     return lines.reduce((acc, line) => {
       const match = this.parser.lineRegex.exec(line);
-      if (match) {
-        acc.push(this.trailerFactory(match[1], match[2], this.schemaBundle.schema));
+      if (!match) {
+        return acc;
       }
+
+      const key = match.groups?.key ?? match[1];
+      const value = match.groups?.value ?? match[2];
+
+      acc.push(this.trailerFactory(key, value, this.schemaBundle.schema));
       return acc;
     }, []);
   }

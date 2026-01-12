@@ -17,11 +17,13 @@ export default class GitTrailer {
    */
   constructor(key, value, schema = GitTrailerSchema) {
     const actualSchema = this._validateSchema(schema);
-    const normalizedKey = String(key ?? '').toLowerCase();
-    const normalizedValue = String(value ?? '').trim();
+    const rawKey = String(key ?? '');
+    const normalizedKey = rawKey.toLowerCase();
+    const rawValue = String(value ?? '');
+    const normalizedValue = rawValue.trim();
 
     try {
-      actualSchema.parse({ key: normalizedKey, value: normalizedValue });
+      actualSchema.parse({ key: rawKey, value: normalizedValue });
       this.key = normalizedKey;
       this.value = normalizedValue;
     } catch (error) {

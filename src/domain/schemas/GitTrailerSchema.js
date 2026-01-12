@@ -25,40 +25,48 @@ const buildKeyRegex = (keyPattern) => {
   }
 };
 
+const normalizeKeyPattern = (keyPattern) => {
+  if (keyPattern instanceof RegExp) {
+    return keyPattern.source;
+  }
+  return keyPattern;
+};
+
 /**
  * Creates a Git trailer schema bundle with customizable validation rules.
  * @param {Object} options - Configuration options
- * @param {string} options.keyPattern - Regex pattern string for key validation (will be anchored)
+ * @param {string|RegExp} options.keyPattern - Regex pattern string or RegExp for key validation (will be anchored)
  * @param {number} options.keyMaxLength - Maximum length for trailer keys
  * @returns {{ schema: z.ZodObject, keyPattern: string, keyRegex: RegExp }}
  */
 export function createGitTrailerSchemaBundle({ keyPattern = DEFAULT_KEY_PATTERN, keyMaxLength = 100 } = {}) {
-  if (typeof keyPattern !== 'string' || keyPattern.length === 0) {
-    throw new TypeError('keyPattern must be a non-empty string');
+  const normalizedKeyPattern = normalizeKeyPattern(keyPattern);
+  if (typeof normalizedKeyPattern !== 'string' || normalizedKeyPattern.length === 0) {
+    throw new TypeError('keyPattern must be a non-empty string or RegExp');
   }
   if (!Number.isInteger(keyMaxLength) || keyMaxLength <= 0) {
     throw new TypeError('keyMaxLength must be a positive integer');
   }
 
-  const cacheKey = `${keyPattern}::${keyMaxLength}`;
+  const cacheKey = `${normalizedKeyPattern}::${keyMaxLength}`;
   if (bundleCache.has(cacheKey)) {
     return bundleCache.get(cacheKey);
   }
 
-  const keyRegex = buildKeyRegex(keyPattern);
+  const keyRegex = buildKeyRegex(normalizedKeyPattern);
   const bundle = {
     schema: z.object({
       key: z
         .string()
         .min(1)
         .max(keyMaxLength, 'Trailer key must not exceed character limit')
-        .regex(keyRegex, `Trailer key must match the required pattern ${keyPattern}`),
+        .regex(keyRegex, `Trailer key must match the required pattern ${normalizedKeyPattern}`),
       value: z
         .string()
         .min(1)
         .regex(/^[^\r\n]+$/, 'Trailer values cannot contain line breaks'),
     }),
-    keyPattern,
+    keyPattern: normalizedKeyPattern,
     keyRegex,
   };
 
