@@ -7,8 +7,9 @@
 ```javascript
 import { createGitTrailerSchemaBundle, TRAILER_KEY_RAW_PATTERN_STRING, TrailerCodecService, GitTrailer } from '@git-stunts/trailer-codec';
 
+// Allow alphanumeric, underscores, hyphens, and dots
 const customBundle = createGitTrailerSchemaBundle({
-  keyPattern: `${TRAILER_KEY_RAW_PATTERN_STRING.replace('-', '.')}\\.+`, // allow dots in keys
+  keyPattern: '[A-Za-z0-9_.-]+',
   keyMaxLength: 120,
 });
 
