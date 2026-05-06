@@ -4,6 +4,9 @@
   "description": "Robust encoder/decoder for structured metadata in Git commit messages",
   "type": "module",
   "main": "index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./index.js",
     "./service": "./src/domain/services/TrailerCodecService.js",
