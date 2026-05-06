@@ -2,23 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { createConfiguredCodec } from '../../../src/adapters/CodecBuilder.js';
 
 describe('createConfiguredCodec', () => {
-  it('returns helpers bound to a configured service', () => {
+  it('returns helpers bound to a configured service', async () => {
     const { decodeMessage } = createConfiguredCodec({
       keyPattern: '[A-Z]+',
       keyMaxLength: 10,
     });
     const encoded = 'Title\n\nVALUE: foo';
-    const decoded = decodeMessage(encoded);
+    const decoded = await decodeMessage(encoded);
 
     expect(decoded.trailers).toHaveProperty('value', 'foo');
   });
 
-  it('allows parser options overrides', () => {
+  it('allows parser options overrides', async () => {
     const { encodeMessage } = createConfiguredCodec({
       parserOptions: { keyPattern: '[A-Za-z]+\\b' },
     });
 
-    const output = encodeMessage({
+    const output = await encodeMessage({
       title: 'Title',
       trailers: { 'CustomKey': 'ok' },
     });

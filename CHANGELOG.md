@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-05-06
+
+### Added
+- **Async-First Core**: Refactored `TrailerCodecService`, `TrailerCodec`, and top-level helpers to be `async`, ensuring future-proof non-blocking operation.
+- **Modernized Documentation**: Rewrote `README.md` and added `GUIDE.md` to emphasize modern async patterns and better pedagogical flow.
+
+### Changed
+- **Breaking: Async API**: `decodeMessage`, `encodeMessage`, `codec.decode()`, and `codec.encode()` now return `Promise` instances and must be `await`ed.
+- **Breaking: Helper Factory**: `createMessageHelpers` now returns a pair of asynchronous functions.
+
 ## [2.1.0] - 2026-01-11
 
 ### Added

@@ -8,17 +8,17 @@ import TrailerTooLargeError from '../../../../src/domain/errors/TrailerTooLargeE
 describe('TrailerCodecService', () => {
   const service = new TrailerCodecService();
 
-  it('decodes a simple message without trailers', () => {
+  it('decodes a simple message without trailers', async () => {
     const raw = 'Simple title\n\nSome body content.';
-    const msg = service.decode(raw);
+    const msg = await service.decode(raw);
     expect(msg.title).toBe('Simple title');
     expect(msg.body).toBe('Some body content.');
     expect(msg.trailers).toHaveLength(0);
   });
 
-  it('decodes a message with trailers', () => {
+  it('decodes a message with trailers', async () => {
     const raw = 'Title\n\nBody.\n\nSigned-off-by: Me\nChange-Id: 123';
-    const msg = service.decode(raw);
+    const msg = await service.decode(raw);
     expect(msg.title).toBe('Title');
     expect(msg.body).toBe('Body.');
     expect(msg.trailers).toHaveLength(2);
@@ -28,26 +28,26 @@ describe('TrailerCodecService', () => {
     expect(msg.trailers[1].value).toBe('123');
   });
 
-  it('handles messages with only title and trailers', () => {
+  it('handles messages with only title and trailers', async () => {
     const raw = 'Title\n\nKey: Value';
-    const msg = service.decode(raw);
+    const msg = await service.decode(raw);
     expect(msg.title).toBe('Title');
     expect(msg.body).toBe('');
     expect(msg.trailers).toHaveLength(1);
   });
 
-  it('encodes a GitCommitMessage entity', () => {
+  it('encodes a GitCommitMessage entity', async () => {
     const msg = new GitCommitMessage({
       title: 'Title',
       trailers: [{ key: 'My-Key', value: 'MyValue' }]
     });
-    const encoded = service.encode(msg);
+    const encoded = await service.encode(msg);
     expect(encoded).toContain('Title');
     expect(encoded).toContain('my-key: MyValue');
   });
 
-  it('encodes a plain object by converting it to entity', () => {
-    const encoded = service.encode({
+  it('encodes a plain object by converting it to entity', async () => {
+    const encoded = await service.encode({
       title: 'Direct Object',
       trailers: [{ key: 'Foo', value: 'Bar' }]
     });
@@ -55,17 +55,17 @@ describe('TrailerCodecService', () => {
     expect(encoded).toContain('foo: Bar');
   });
 
-  it('handles Windows line endings in decoding', () => {
+  it('handles Windows line endings in decoding', async () => {
     const raw = 'Title\r\n\r\nBody\r\n\r\nKey: Value';
-    const msg = service.decode(raw);
+    const msg = await service.decode(raw);
     expect(msg.title).toBe('Title');
     expect(msg.trailers).toHaveLength(1);
     expect(msg.trailers[0].value).toBe('Value');
   });
 
-  it('rejects trailers without a blank line separator', () => {
+  it('rejects trailers without a blank line separator', async () => {
     const raw = 'Title\nBody\nSigned-off-by: Me';
-    expect(() => service.decode(raw)).toThrow(TrailerNoSeparatorError);
+    await expect(service.decode(raw)).rejects.toThrow(TrailerNoSeparatorError);
   });
 
   it('rejects trailer values containing line breaks', () => {
@@ -85,7 +85,7 @@ describe('TrailerCodecService', () => {
     expect(lines).toEqual(['Title', '', 'Body']);
   });
 
-  it('respects formatter hooks when provided', () => {
+  it('respects formatter hooks when provided', async () => {
     const serviceWithFormatters = new TrailerCodecService({
       formatters: {
         titleFormatter: (value) => `(${value})`,
@@ -93,7 +93,7 @@ describe('TrailerCodecService', () => {
       },
     });
     const raw = 'Title \n\n Body ';
-    const msg = serviceWithFormatters.decode(raw);
+    const msg = await serviceWithFormatters.decode(raw);
     expect(msg.title).toBe('(Title)');
     expect(msg.body).toBe('[[ Body ]]');
   });

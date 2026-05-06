@@ -60,12 +60,12 @@ export function formatBodySegment(body, { keepTrailingNewline = false } = {}) {
  * @param {Object} [options]
  * @param {TrailerCodecService} [options.service] - Optional custom service (defaults to new one).
  * @param {Object} [options.bodyFormatOptions] - Options forwarded to `formatBodySegment`.
- * @returns {{ decodeMessage: (input: string) => { title: string, body: string, trailers: Record<string,string> }, encodeMessage: (payload: { title: string, body?: string, trailers?: Record<string,string> }) => string }}
+ * @returns {{ decodeMessage: (input: string) => Promise<{ title: string, body: string, trailers: Record<string,string> }>, encodeMessage: (payload: { title: string, body?: string, trailers?: Record<string,string> }) => Promise<string> }}
  */
 export function createMessageHelpers({ service = new TrailerCodecService(), bodyFormatOptions } = {}) {
-  function decode(input) {
+  async function decode(input) {
     const message = normalizeInput(input);
-    const entity = service.decode(message);
+    const entity = await service.decode(message);
     return {
       title: entity.title,
       body: formatBodySegment(entity.body, bodyFormatOptions),
@@ -73,9 +73,9 @@ export function createMessageHelpers({ service = new TrailerCodecService(), body
     };
   }
 
-  function encode({ title, body, trailers = {} }) {
+  async function encode({ title, body, trailers = {} }) {
     const trailerArray = Object.entries(trailers).map(([key, value]) => ({ key, value }));
-    return service.encode({ title, body, trailers: trailerArray });
+    return await service.encode({ title, body, trailers: trailerArray });
   }
 
   return { decodeMessage: decode, encodeMessage: encode };
@@ -102,33 +102,37 @@ class TrailerCodec {
   /**
    * Decode a raw commit payload.
    * @param {string} input
+   * @returns {Promise<Object>}
    */
-  decodeMessage(input) {
-    return this.helpers.decodeMessage(input);
+  async decodeMessage(input) {
+    return await this.helpers.decodeMessage(input);
   }
 
   /**
    * Encode a payload back into a commit string.
    * @param {Object} payload
+   * @returns {Promise<string>}
    */
-  encodeMessage(payload) {
-    return this.helpers.encodeMessage(payload);
+  async encodeMessage(payload) {
+    return await this.helpers.encodeMessage(payload);
   }
 
   /**
    * Convenience alias for decodeMessage.
    * @param {string} input
+   * @returns {Promise<Object>}
    */
-  decode(input) {
-    return this.decodeMessage(input);
+  async decode(input) {
+    return await this.decodeMessage(input);
   }
 
   /**
    * Convenience alias for encodeMessage.
    * @param {Object} payload
+   * @returns {Promise<string>}
    */
-  encode(payload) {
-    return this.encodeMessage(payload);
+  async encode(payload) {
+    return await this.encodeMessage(payload);
   }
 }
 
@@ -150,14 +154,16 @@ export function createDefaultTrailerCodec({ bodyFormatOptions } = {}) {
 /**
  * @deprecated Use `TrailerCodec.decodeMessage` directly.
  * Convenience wrapper that builds a default codec and decodes the message.
+ * @returns {Promise<Object>}
  */
-export function decodeMessage(message, bodyFormatOptions) {
-  return createDefaultTrailerCodec({ bodyFormatOptions }).decodeMessage(message);
+export async function decodeMessage(message, bodyFormatOptions) {
+  return await createDefaultTrailerCodec({ bodyFormatOptions }).decodeMessage(message);
 }
 
 /**
  * @deprecated Use `TrailerCodec` instances for most call sites.
+ * @returns {Promise<string>}
  */
-export function encodeMessage(payload, bodyFormatOptions) {
-  return createDefaultTrailerCodec({ bodyFormatOptions }).encodeMessage(payload);
+export async function encodeMessage(payload, bodyFormatOptions) {
+  return await createDefaultTrailerCodec({ bodyFormatOptions }).encodeMessage(payload);
 }

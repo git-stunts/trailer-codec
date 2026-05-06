@@ -19,13 +19,13 @@ describe('TrailerCodec', () => {
     expect(typeof codec.encode).toBe('function');
   });
 
-  it('decode() alias works identically to decodeMessage()', () => {
+  it('decode() alias works identically to decodeMessage()', async () => {
     const service = new TrailerCodecService();
     const codec = new TrailerCodec({ service });
     const raw = 'Title\n\nBody\n\nKey: Value';
 
-    const result1 = codec.decodeMessage(raw);
-    const result2 = codec.decode(raw);
+    const result1 = await codec.decodeMessage(raw);
+    const result2 = await codec.decode(raw);
 
     expect(result1).toEqual(result2);
     expect(result1.title).toBe('Title');
@@ -33,13 +33,13 @@ describe('TrailerCodec', () => {
     expect(result1.trailers).toEqual({ key: 'Value' });
   });
 
-  it('encode() alias works identically to encodeMessage()', () => {
+  it('encode() alias works identically to encodeMessage()', async () => {
     const service = new TrailerCodecService();
     const codec = new TrailerCodec({ service });
     const payload = { title: 'Test', body: 'Content', trailers: { foo: 'bar' } };
 
-    const result1 = codec.encodeMessage(payload);
-    const result2 = codec.encode(payload);
+    const result1 = await codec.encodeMessage(payload);
+    const result2 = await codec.encode(payload);
 
     expect(result1).toBe(result2);
     expect(result1).toContain('Test');
