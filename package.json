@@ -1,14 +1,18 @@
 {
   "name": "@git-stunts/trailer-codec",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Robust encoder/decoder for structured metadata in Git commit messages",
   "type": "module",
   "main": "index.js",
+  "types": "./index.d.ts",
   "publishConfig": {
     "access": "public"
   },
   "exports": {
-    ".": "./index.js",
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
     "./service": "./src/domain/services/TrailerCodecService.js",
     "./message": "./src/domain/entities/GitCommitMessage.js",
     "./trailer": "./src/domain/value-objects/GitTrailer.js",
@@ -39,6 +43,7 @@
     "src",
     "docs",
     "index.js",
+    "index.d.ts",
     "README.md",
     "API_REFERENCE.md",
     "ARCHITECTURE.md",
