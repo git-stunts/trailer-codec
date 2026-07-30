@@ -15,6 +15,7 @@ jobs:
   recover:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: npm-publish
     permissions:
       contents: write
       id-token: write
