@@ -8,17 +8,17 @@ import TrailerTooLargeError from '../../../../src/domain/errors/TrailerTooLargeE
 describe('TrailerCodecService', () => {
   const service = new TrailerCodecService();
 
-  it('decodes a simple message without trailers', async () => {
+  it('decodes a simple message without trailers', () => {
     const raw = 'Simple title\n\nSome body content.';
-    const msg = await service.decode(raw);
+    const msg = service.decode(raw);
     expect(msg.title).toBe('Simple title');
     expect(msg.body).toBe('Some body content.');
     expect(msg.trailers).toHaveLength(0);
   });
 
-  it('decodes a message with trailers', async () => {
+  it('decodes a message with trailers', () => {
     const raw = 'Title\n\nBody.\n\nSigned-off-by: Me\nChange-Id: 123';
-    const msg = await service.decode(raw);
+    const msg = service.decode(raw);
     expect(msg.title).toBe('Title');
     expect(msg.body).toBe('Body.');
     expect(msg.trailers).toHaveLength(2);
@@ -28,26 +28,26 @@ describe('TrailerCodecService', () => {
     expect(msg.trailers[1].value).toBe('123');
   });
 
-  it('handles messages with only title and trailers', async () => {
+  it('handles messages with only title and trailers', () => {
     const raw = 'Title\n\nKey: Value';
-    const msg = await service.decode(raw);
+    const msg = service.decode(raw);
     expect(msg.title).toBe('Title');
     expect(msg.body).toBe('');
     expect(msg.trailers).toHaveLength(1);
   });
 
-  it('encodes a GitCommitMessage entity', async () => {
+  it('encodes a GitCommitMessage entity', () => {
     const msg = new GitCommitMessage({
       title: 'Title',
       trailers: [{ key: 'My-Key', value: 'MyValue' }]
     });
-    const encoded = await service.encode(msg);
+    const encoded = service.encode(msg);
     expect(encoded).toContain('Title');
     expect(encoded).toContain('my-key: MyValue');
   });
 
-  it('encodes a plain object by converting it to entity', async () => {
-    const encoded = await service.encode({
+  it('encodes a plain object by converting it to entity', () => {
+    const encoded = service.encode({
       title: 'Direct Object',
       trailers: [{ key: 'Foo', value: 'Bar' }]
     });
@@ -55,17 +55,17 @@ describe('TrailerCodecService', () => {
     expect(encoded).toContain('foo: Bar');
   });
 
-  it('handles Windows line endings in decoding', async () => {
+  it('handles Windows line endings in decoding', () => {
     const raw = 'Title\r\n\r\nBody\r\n\r\nKey: Value';
-    const msg = await service.decode(raw);
+    const msg = service.decode(raw);
     expect(msg.title).toBe('Title');
     expect(msg.trailers).toHaveLength(1);
     expect(msg.trailers[0].value).toBe('Value');
   });
 
-  it('rejects trailers without a blank line separator', async () => {
+  it('rejects trailers without a blank line separator', () => {
     const raw = 'Title\nBody\nSigned-off-by: Me';
-    await expect(service.decode(raw)).rejects.toThrow(TrailerNoSeparatorError);
+    expect(() => service.decode(raw)).toThrow(TrailerNoSeparatorError);
   });
 
   it('rejects trailer values containing line breaks', () => {
@@ -85,7 +85,7 @@ describe('TrailerCodecService', () => {
     expect(lines).toEqual(['Title', '', 'Body']);
   });
 
-  it('respects formatter hooks when provided', async () => {
+  it('respects formatter hooks when provided', () => {
     const serviceWithFormatters = new TrailerCodecService({
       formatters: {
         titleFormatter: (value) => `(${value})`,
@@ -93,8 +93,18 @@ describe('TrailerCodecService', () => {
       },
     });
     const raw = 'Title \n\n Body ';
-    const msg = await serviceWithFormatters.decode(raw);
+    const msg = serviceWithFormatters.decode(raw);
     expect(msg.title).toBe('(Title)');
     expect(msg.body).toBe('[[ Body ]]');
+  });
+
+  it('supports async variants asynchronously', async () => {
+    const raw = 'Title\n\nBody.\n\nSigned-off-by: Me\nChange-Id: 123';
+    const msg = await service.decodeAsync(raw);
+    expect(msg.title).toBe('Title');
+    expect(msg.trailers).toHaveLength(2);
+
+    const encoded = await service.encodeAsync(msg);
+    expect(encoded).toContain('Title');
   });
 });

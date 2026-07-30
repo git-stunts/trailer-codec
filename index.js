@@ -70,14 +70,9 @@ export { createMessageHelpers } from './src/adapters/FacadeAdapter.js';
  * @see {@link ./src/adapters/FacadeAdapter.js}
  */
 export { decodeMessage } from './src/adapters/FacadeAdapter.js';
-
-/**
- * Convenience function for encoding messages (deprecated).
- * Prefer using `TrailerCodec` instances for most use cases.
- * @deprecated Use TrailerCodec class instead
- * @see {@link ./src/adapters/FacadeAdapter.js}
- */
 export { encodeMessage } from './src/adapters/FacadeAdapter.js';
+export { decodeMessageAsync } from './src/adapters/FacadeAdapter.js';
+export { encodeMessageAsync } from './src/adapters/FacadeAdapter.js';
 
 /**
  * Helper for formatting body segments with optional trailing newline.

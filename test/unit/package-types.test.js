@@ -17,11 +17,15 @@ describe('package TypeScript declarations', () => {
     });
   });
 
-  it('declares the async facade API', () => {
+  it('declares the synchronous facade API and async variants', () => {
     expect(declarations).toContain('export class TrailerCodec');
     expect(declarations).toContain(
-      'decodeMessage(input: string): Promise<TrailerCodecDecodedMessage>'
+      'decodeMessage(input: string): TrailerCodecDecodedMessage'
     );
-    expect(declarations).toContain('encodeMessage(payload: TrailerCodecPayload): Promise<string>');
+    expect(declarations).toContain('encodeMessage(payload: TrailerCodecPayload): string');
+    expect(declarations).toContain(
+      'decodeMessageAsync(input: string): Promise<TrailerCodecDecodedMessage>'
+    );
+    expect(declarations).toContain('encodeMessageAsync(payload: TrailerCodecPayload): Promise<string>');
   });
 });

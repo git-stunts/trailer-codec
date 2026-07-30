@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-29
+
+### Added
+- **Asynchronous Variants**: Added `decodeAsync`, `encodeAsync`, `decodeMessageAsync`, and `encodeMessageAsync` for explicitly asynchronous operations.
+
+### Changed
+- **Breaking: Restored Synchronous Core**: Reverted all core methods (`decode`, `encode`, `decodeMessage`, `encodeMessage`) and helper factories (`createMessageHelpers`) to be synchronous by default. This resolves performance, event-loop blocking, and type-safety issues for performance-critical synchronous consumers (like `git-warp`).
+
 ## [3.0.4] - 2026-06-24
 
 ### Added

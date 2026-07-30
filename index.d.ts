@@ -107,8 +107,10 @@ export class TrailerCodecService {
   readonly schemaBundle: TrailerSchemaBundle;
   readonly parser: TrailerParser;
 
-  decode(message: string): Promise<GitCommitMessage>;
-  encode(messageEntity: GitCommitMessage | GitCommitMessageInput): Promise<string>;
+  decode(message: string): GitCommitMessage;
+  decodeAsync(message: string): Promise<GitCommitMessage>;
+  encode(messageEntity: GitCommitMessage | GitCommitMessageInput): string;
+  encodeAsync(messageEntity: GitCommitMessage | GitCommitMessageInput): Promise<string>;
 }
 
 export interface BodyFormatOptions {
@@ -130,12 +132,14 @@ export interface TrailerCodecDecodedMessage {
 }
 
 export interface TrailerMessageHelpers {
-  decodeMessage(input: string): Promise<TrailerCodecDecodedMessage>;
-  encodeMessage(payload: TrailerCodecPayload): Promise<string>;
+  decodeMessage(input: string): TrailerCodecDecodedMessage;
+  encodeMessage(payload: TrailerCodecPayload): string;
+  decodeMessageAsync(input: string): Promise<TrailerCodecDecodedMessage>;
+  encodeMessageAsync(payload: TrailerCodecPayload): Promise<string>;
 }
 
 export interface CreateMessageHelpersOptions {
-  service?: Pick<TrailerCodecService, 'decode' | 'encode'>;
+  service?: Pick<TrailerCodecService, 'decode' | 'encode' | 'decodeAsync' | 'encodeAsync'>;
   bodyFormatOptions?: BodyFormatOptions;
 }
 
@@ -149,18 +153,33 @@ export interface TrailerCodecOptions {
 export class TrailerCodec {
   constructor(options: TrailerCodecOptions);
 
-  decodeMessage(input: string): Promise<TrailerCodecDecodedMessage>;
-  encodeMessage(payload: TrailerCodecPayload): Promise<string>;
-  decode(input: string): Promise<TrailerCodecDecodedMessage>;
-  encode(payload: TrailerCodecPayload): Promise<string>;
+  decodeMessage(input: string): TrailerCodecDecodedMessage;
+  encodeMessage(payload: TrailerCodecPayload): string;
+  decode(input: string): TrailerCodecDecodedMessage;
+  encode(payload: TrailerCodecPayload): string;
+
+  decodeMessageAsync(input: string): Promise<TrailerCodecDecodedMessage>;
+  encodeMessageAsync(payload: TrailerCodecPayload): Promise<string>;
+  decodeAsync(input: string): Promise<TrailerCodecDecodedMessage>;
+  encodeAsync(payload: TrailerCodecPayload): Promise<string>;
 }
 
 export function decodeMessage(
   message: string,
   bodyFormatOptions?: BodyFormatOptions
-): Promise<TrailerCodecDecodedMessage>;
+): TrailerCodecDecodedMessage;
 
 export function encodeMessage(
+  payload: TrailerCodecPayload,
+  bodyFormatOptions?: BodyFormatOptions
+): string;
+
+export function decodeMessageAsync(
+  message: string,
+  bodyFormatOptions?: BodyFormatOptions
+): Promise<TrailerCodecDecodedMessage>;
+
+export function encodeMessageAsync(
   payload: TrailerCodecPayload,
   bodyFormatOptions?: BodyFormatOptions
 ): Promise<string>;
@@ -178,6 +197,8 @@ export interface ConfiguredCodec {
   helpers: TrailerMessageHelpers;
   decodeMessage: TrailerMessageHelpers['decodeMessage'];
   encodeMessage: TrailerMessageHelpers['encodeMessage'];
+  decodeMessageAsync: TrailerMessageHelpers['decodeMessageAsync'];
+  encodeMessageAsync: TrailerMessageHelpers['encodeMessageAsync'];
 }
 
 export function createConfiguredCodec(options?: ConfiguredCodecOptions): ConfiguredCodec;

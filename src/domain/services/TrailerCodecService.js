@@ -66,9 +66,9 @@ export default class TrailerCodecService {
   /**
    * Normalizes the raw string, validates trailers, and returns the domain entity.
    * @param {string} message
-   * @returns {Promise<GitCommitMessage>}
+   * @returns {GitCommitMessage}
    */
-  async decode(message) {
+  decode(message) {
     if (!message) {
       return new GitCommitMessage(
         { title: '', body: '', trailers: [] },
@@ -91,11 +91,20 @@ export default class TrailerCodecService {
   }
 
   /**
+   * Normalizes the raw string, validates trailers, and returns the domain entity asynchronously.
+   * @param {string} message
+   * @returns {Promise<GitCommitMessage>}
+   */
+  async decodeAsync(message) {
+    return this.decode(message);
+  }
+
+  /**
    * Serializes a GitCommitMessage entity or raw payload, applying schema validation/formatters.
    * @param {GitCommitMessage|import('../entities/GitCommitMessage.js').GitCommitMessageInput} messageEntity
-   * @returns {Promise<string>}
+   * @returns {string}
    */
-  async encode(messageEntity) {
+  encode(messageEntity) {
     if (!messageEntity) {
       throw new TypeError('messageEntity is required');
     }
@@ -107,6 +116,15 @@ export default class TrailerCodecService {
             formatters: this.formatters,
           });
     return commitMessage.toString();
+  }
+
+  /**
+   * Serializes a GitCommitMessage entity or raw payload asynchronously.
+   * @param {GitCommitMessage|import('../entities/GitCommitMessage.js').GitCommitMessageInput} messageEntity
+   * @returns {Promise<string>}
+   */
+  async encodeAsync(messageEntity) {
+    return this.encode(messageEntity);
   }
 
   /**

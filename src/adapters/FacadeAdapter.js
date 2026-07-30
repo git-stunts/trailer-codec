@@ -63,9 +63,9 @@ export function formatBodySegment(body, { keepTrailingNewline = false } = {}) {
  * @returns {{ decodeMessage: (input: string) => Promise<{ title: string, body: string, trailers: Record<string,string> }>, encodeMessage: (payload: { title: string, body?: string, trailers?: Record<string,string> }) => Promise<string> }}
  */
 export function createMessageHelpers({ service = new TrailerCodecService(), bodyFormatOptions } = {}) {
-  async function decode(input) {
+  function decode(input) {
     const message = normalizeInput(input);
-    const entity = await service.decode(message);
+    const entity = service.decode(message);
     return {
       title: entity.title,
       body: formatBodySegment(entity.body, bodyFormatOptions),
@@ -73,12 +73,32 @@ export function createMessageHelpers({ service = new TrailerCodecService(), body
     };
   }
 
-  async function encode({ title, body, trailers = {} }) {
+  function encode({ title, body, trailers = {} }) {
     const trailerArray = Object.entries(trailers).map(([key, value]) => ({ key, value }));
-    return await service.encode({ title, body, trailers: trailerArray });
+    return service.encode({ title, body, trailers: trailerArray });
   }
 
-  return { decodeMessage: decode, encodeMessage: encode };
+  async function decodeAsync(input) {
+    const message = normalizeInput(input);
+    const entity = await service.decodeAsync(message);
+    return {
+      title: entity.title,
+      body: formatBodySegment(entity.body, bodyFormatOptions),
+      trailers: normalizeTrailers(entity),
+    };
+  }
+
+  async function encodeAsync({ title, body, trailers = {} }) {
+    const trailerArray = Object.entries(trailers).map(([key, value]) => ({ key, value }));
+    return await service.encodeAsync({ title, body, trailers: trailerArray });
+  }
+
+  return {
+    decodeMessage: decode,
+    encodeMessage: encode,
+    decodeMessageAsync: decodeAsync,
+    encodeMessageAsync: encodeAsync,
+  };
 }
 
 /**
@@ -102,37 +122,73 @@ class TrailerCodec {
   /**
    * Decode a raw commit payload.
    * @param {string} input
-   * @returns {Promise<Object>}
+   * @returns {Object}
    */
-  async decodeMessage(input) {
-    return await this.helpers.decodeMessage(input);
+  decodeMessage(input) {
+    return this.helpers.decodeMessage(input);
   }
 
   /**
    * Encode a payload back into a commit string.
    * @param {Object} payload
-   * @returns {Promise<string>}
+   * @returns {string}
    */
-  async encodeMessage(payload) {
-    return await this.helpers.encodeMessage(payload);
+  encodeMessage(payload) {
+    return this.helpers.encodeMessage(payload);
   }
 
   /**
    * Convenience alias for decodeMessage.
    * @param {string} input
-   * @returns {Promise<Object>}
+   * @returns {Object}
    */
-  async decode(input) {
-    return await this.decodeMessage(input);
+  decode(input) {
+    return this.decodeMessage(input);
   }
 
   /**
    * Convenience alias for encodeMessage.
    * @param {Object} payload
+   * @returns {string}
+   */
+  encode(payload) {
+    return this.encodeMessage(payload);
+  }
+
+  /**
+   * Decode a raw commit payload asynchronously.
+   * @param {string} input
+   * @returns {Promise<Object>}
+   */
+  async decodeMessageAsync(input) {
+    return this.helpers.decodeMessageAsync(input);
+  }
+
+  /**
+   * Encode a payload back into a commit string asynchronously.
+   * @param {Object} payload
    * @returns {Promise<string>}
    */
-  async encode(payload) {
-    return await this.encodeMessage(payload);
+  async encodeMessageAsync(payload) {
+    return this.helpers.encodeMessageAsync(payload);
+  }
+
+  /**
+   * Convenience alias for decodeMessageAsync.
+   * @param {string} input
+   * @returns {Promise<Object>}
+   */
+  async decodeAsync(input) {
+    return this.decodeMessageAsync(input);
+  }
+
+  /**
+   * Convenience alias for encodeMessageAsync.
+   * @param {Object} payload
+   * @returns {Promise<string>}
+   */
+  async encodeAsync(payload) {
+    return this.encodeMessageAsync(payload);
   }
 }
 
@@ -154,16 +210,32 @@ export function createDefaultTrailerCodec({ bodyFormatOptions } = {}) {
 /**
  * @deprecated Use `TrailerCodec.decodeMessage` directly.
  * Convenience wrapper that builds a default codec and decodes the message.
- * @returns {Promise<Object>}
+ * @returns {Object}
  */
-export async function decodeMessage(message, bodyFormatOptions) {
-  return await createDefaultTrailerCodec({ bodyFormatOptions }).decodeMessage(message);
+export function decodeMessage(message, bodyFormatOptions) {
+  return createDefaultTrailerCodec({ bodyFormatOptions }).decodeMessage(message);
 }
 
 /**
  * @deprecated Use `TrailerCodec` instances for most call sites.
+ * @returns {string}
+ */
+export function encodeMessage(payload, bodyFormatOptions) {
+  return createDefaultTrailerCodec({ bodyFormatOptions }).encodeMessage(payload);
+}
+
+/**
+ * Convenience wrapper that builds a default codec and decodes the message asynchronously.
+ * @returns {Promise<Object>}
+ */
+export async function decodeMessageAsync(message, bodyFormatOptions) {
+  return await createDefaultTrailerCodec({ bodyFormatOptions }).decodeMessageAsync(message);
+}
+
+/**
+ * Convenience wrapper that builds a default codec and encodes the message asynchronously.
  * @returns {Promise<string>}
  */
-export async function encodeMessage(payload, bodyFormatOptions) {
-  return await createDefaultTrailerCodec({ bodyFormatOptions }).encodeMessage(payload);
+export async function encodeMessageAsync(payload, bodyFormatOptions) {
+  return await createDefaultTrailerCodec({ bodyFormatOptions }).encodeMessageAsync(payload);
 }
